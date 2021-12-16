@@ -44,24 +44,13 @@ nx0 = len(x0_cover)
 Ys = odeint(ode.differential_equations, x0_cover, time, args=(rates_cover, rates_cover_t))
 Yt = np.sum(Ys,axis=1) # axis=1 --> suma silas, axis=0 --> suma columnas
 
-## Save data in array
-
-coverageValue = {}
-coverageValue1 = {}
-
 for i in range(nx0):
     j = i + 1
     plt.plot(time, Ys[:, i], label='%s cobertura' % j)
-    temp0 = '%s cobertura' % j
-    temp = time + temp0
-    coverageValue[temp] = Ys[:, i]
     plt.scatter(time, Ys[:, i])
-    # coverageValue1[time] = Ys[:, i]
 
 plt.plot(time, Yt, label='área total')
 plt.legend(loc='best')
 plt.xlabel('tiempo')
-print('coverageValue: ', coverageValue)
-print('coverageValue1: ', coverageValue1)
 plt.grid()
 plt.show()
