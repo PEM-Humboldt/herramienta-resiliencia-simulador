@@ -1,0 +1,58 @@
+
+import pandas as pd
+from sqlalchemy import create_engine
+import os
+from dotenv import load_dotenv
+
+load_dotenv()
+
+# MONGODB configuration
+
+def initial_cover(num_digits):
+    POSTGRES_ADDRESS = os.getenv('POSTGRES_ADDRESS')
+    POSTGRES_PORT = os.getenv('POSTGRES_PORT')
+    POSTGRES_USERNAME = os.getenv('POSTGRES_USERNAME')
+    POSTGRES_PASSWORD = os.getenv('POSTGRES_PASSWORD')
+    POSTGRES_DBNAME = os.getenv('POSTGRES_DBNAME')
+    # Do not change this long string that contains the necessary MongoDB login information
+    postgres_str = ('postgresql://{username}:{password}@{ipaddress}:{port}/{dbname}'.format(username=POSTGRES_USERNAME,
+                                                                                            password=POSTGRES_PASSWORD,
+                                                                                            ipaddress=POSTGRES_ADDRESS,
+                                                                                            port=POSTGRES_PORT,
+                                                                                            dbname=POSTGRES_DBNAME))
+    # Create the connection
+    cnx = create_engine(postgres_str)
+    
+    ### Consulta SQL para obtener las capas
+    
+    layers = pd.read_sql_query('SELECT * FROM cover.cobert_tillava', cnx)
+    
+    # Crea una copia de la capa para posibles modificaciones
+    layers_new = layers.rename(columns={'codigo':'codigo_nuevo'})
+    
+    # define el nivel a usar en la agrupación de capas ¿debería ser menor o igual a min_level?
+    # num_digits = 2
+    
+    cod = layers_new['codigo_nuevo']
+    cod_new = [None for cod in range(len(cod))]
+    
+    for i in range(len(cod)):
+        num_str = str(cod[i])
+        cod_new[i] = len(num_str)
+        layers_new['codigo_nuevo'][i] = num_str[0:num_digits]
+    
+    # min_level = min(cod_new)
+    
+    column_values = layers_new[["codigo_nuevo"]].values.ravel()
+    unique_values =  pd.unique(column_values) # numero de coberturas diferentes para el nivel establecido
+    n = len(unique_values)
+    # sum_cover = [None for unique_values in range(n)]
+    sum_cover = [[None for unique_values in range(2)] for unique_values in range(n)]
+     
+    # crea una lista con los digitos del nivel y la suma de las shape_area ¿Cuales son las unidades de área?
+    for i in range(len(unique_values)):
+        idx = layers_new.index[layers_new['codigo_nuevo'] == unique_values[i]].tolist()
+        sum_cover[i][0] = unique_values[i]
+        sum_cover[i][1] = sum(layers_new.iloc[idx]["shape_area"])
+        
+    return sum_cover
