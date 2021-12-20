@@ -5,6 +5,13 @@ Implementación del modelo que hace parte de la herramienta de resiliencia.
 ## Prerrequisitos
 -Python V 3.8
 
+Para instalar las dependencias necesarias, ejecute:
+ - pip install -r requirements.txt
+ 
+Y si utiliza pip3, ejecute:
+ 
+ - pip3 install -r requirements.txt
+
 ## Cómo ejecutar [WIP]
 
 Ejecute el archivo `run_principal.py`
