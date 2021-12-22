@@ -6,7 +6,6 @@ from dotenv import load_dotenv
 
 load_dotenv()
 
-# MONGODB configuration
 
 def initial_cover(num_digits):
     POSTGRES_ADDRESS = os.getenv('POSTGRES_ADDRESS')
@@ -25,25 +24,25 @@ def initial_cover(num_digits):
     
     ### Consulta SQL para obtener las capas
     
-    layers = pd.read_sql_query('SELECT * FROM cover.cobert_tillava', cnx)
+    layers = pd.read_sql_query('SELECT * FROM public.cobert_tillava', cnx)
     
     # Crea una copia de la capa para posibles modificaciones
-    layers_new = layers.rename(columns={'codigo':'codigo_nuevo'})
+    layers_new = layers.rename(columns={'codigo_clc':'codigo_clc_new'})
     
     # define el nivel a usar en la agrupación de capas ¿debería ser menor o igual a min_level?
     # num_digits = 2
     
-    cod = layers_new['codigo_nuevo']
+    cod = layers_new['codigo_clc_new']
     cod_new = [None for cod in range(len(cod))]
     
     for i in range(len(cod)):
         num_str = str(cod[i])
         cod_new[i] = len(num_str)
-        layers_new['codigo_nuevo'][i] = num_str[0:num_digits]
+        layers_new['codigo_clc_new'][i] = num_str[0:num_digits]
     
     # min_level = min(cod_new)
     
-    column_values = layers_new[["codigo_nuevo"]].values.ravel()
+    column_values = layers_new[["codigo_clc_new"]].values.ravel()
     unique_values =  pd.unique(column_values) # numero de coberturas diferentes para el nivel establecido
     n = len(unique_values)
     # sum_cover = [None for unique_values in range(n)]
@@ -51,8 +50,8 @@ def initial_cover(num_digits):
      
     # crea una lista con los digitos del nivel y la suma de las shape_area ¿Cuales son las unidades de área?
     for i in range(len(unique_values)):
-        idx = layers_new.index[layers_new['codigo_nuevo'] == unique_values[i]].tolist()
+        idx = layers_new.index[layers_new['codigo_clc_new'] == unique_values[i]].tolist()
         sum_cover[i][0] = unique_values[i]
-        sum_cover[i][1] = sum(layers_new.iloc[idx]["shape_area"])
+        sum_cover[i][1] = sum(layers_new.iloc[idx]["area_ha"])
         
     return sum_cover
