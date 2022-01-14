@@ -1,16 +1,17 @@
 
 import pandas as pd
 from sqlalchemy import create_engine
-# MONGODB configuration
+import os
+from dotenv import load_dotenv
+
+load_dotenv()
 
 def initial_cover(num_digits):
-    
-# Postgres username, password, and database name
-    POSTGRES_ADDRESS = '192.168.11.106' ## INSERT YOUR DB ADDRESS IF IT'S NOT ON PANOPLY
-    POSTGRES_PORT = '5454'
-    POSTGRES_USERNAME = 'eco'
-    POSTGRES_PASSWORD = 'eco'
-    POSTGRES_DBNAME = 'eco'
+    POSTGRES_ADDRESS = os.getenv('POSTGRES_ADDRESS')
+    POSTGRES_PORT = os.getenv('POSTGRES_PORT')
+    POSTGRES_USERNAME = os.getenv('POSTGRES_USERNAME')
+    POSTGRES_PASSWORD = os.getenv('POSTGRES_PASSWORD')
+    POSTGRES_DBNAME = os.getenv('POSTGRES_DBNAME')
     # Do not change this long string that contains the necessary MongoDB login information
     postgres_str = ('postgresql://{username}:{password}@{ipaddress}:{port}/{dbname}'.format(username=POSTGRES_USERNAME,
                                                                                             password=POSTGRES_PASSWORD,
