@@ -50,13 +50,13 @@ cover_time_series.to_csv('./outputs/cover_time_series.csv', float_format='%.2f')
 
 
 # OPTIONAL - PLOT TIME SERIES
-for i in range(nx0):
-    j = i + 1
-    plt.plot(time, Ys[:, i], label=name_cover[i])
-    plt.scatter(time, Ys[:, i])
+# for i in range(nx0):
+#     j = i + 1
+#     plt.plot(time, Ys[:, i], label=name_cover[i])
+#     plt.scatter(time, Ys[:, i])
 
-plt.plot(time, Yt, label='Área total')
-plt.legend(loc='best')
-plt.xlabel('tiempo')
-plt.grid()
-plt.show()
+# plt.plot(time, Yt, label='Área total')
+# plt.legend(loc='best')
+# plt.xlabel('tiempo')
+# plt.grid()
+# plt.show()
