@@ -8,9 +8,10 @@ RUN apt-get update && apt-get install -y openssh-server \
 
 USER model
 RUN mkdir -p /home/model/app
-WORKDIR /home/model/app
 COPY . /home/model/app
-RUN python3 -m pip install -r requirements.txt
+WORKDIR /home/model/app/
+RUN python3 -m pip install -r requirements.txt \
+  && mkdir -p /home/model/app/outputs
 
 USER root
 CMD ["/usr/sbin/sshd","-D", "-e"]
