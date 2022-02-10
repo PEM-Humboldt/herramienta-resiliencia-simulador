@@ -6,7 +6,7 @@ from dotenv import load_dotenv
 
 load_dotenv()
 
-def initial_cover(num_digits):
+def initial_cover():
     POSTGRES_ADDRESS = os.getenv('POSTGRES_ADDRESS')
     POSTGRES_PORT = os.getenv('POSTGRES_PORT')
     POSTGRES_USERNAME = os.getenv('POSTGRES_USERNAME')
@@ -23,7 +23,7 @@ def initial_cover(num_digits):
     
     ### query SQL to get data
     
-    layers = pd.read_sql_query('SELECT * FROM public.cobert_tillava', cnx)
+    layers = pd.read_sql_query('SELECT codigo_clc, cobertura, area_ha FROM public.coberturas', cnx)
     
     # Create a copy of the layer for possible modifications
     layers_new = layers.rename(columns={'codigo_clc':'codigo_clc_new'})
