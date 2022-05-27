@@ -1,4 +1,5 @@
 import numpy as np
+import random
 # import sys
 # sys.path.insert(0, './ModuloAgua')
 # import WaterFlows as WaterFlows
@@ -6,8 +7,9 @@ import numpy as np
 import pandas as pd
 from ModuloAgua import WaterFlows
 from ModuloAgua import ConsumptionFlows
+from ModuloDiversidadActividadesProductivas import PopulationFlows
 
-def differential_equations(x0, t, cover_rates, cover_rates_t, nx0_cover,dw, mca):
+def differential_equations(x0, t, cover_rates, cover_rates_t, nx0_cover, dw, dp, mca):
     
     # 1- soil covers module
     derivatives = np.zeros(len(x0))
@@ -29,5 +31,8 @@ def differential_equations(x0, t, cover_rates, cover_rates_t, nx0_cover,dw, mca)
     derivatives[k + 1] = WaterFlows.water_inputs(x0, dw) - WaterFlows.water_outputs(x0, dw, RH, tsaoc)
     
     derivatives[k + 2] = ConsumptionFlows.flow_input(x0, dw, tsaoc) - ConsumptionFlows.water_consumption(dw, mca)
+    
+     # 3- diversity of economic activities
+    derivatives[k + 3] = PopulationFlows.population_inputs(x0, dp) - PopulationFlows.population_outputs(x0, dp)
     
     return derivatives
