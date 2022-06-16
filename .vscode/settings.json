@@ -1,0 +1,8 @@
+{
+    "python.analysis.extraPaths": [
+        "./condiciones_iniciales",
+        "./2_modulo_agua",
+        "./2ModuloAgua",
+        "./ModuloAgua"
+    ]
+}
