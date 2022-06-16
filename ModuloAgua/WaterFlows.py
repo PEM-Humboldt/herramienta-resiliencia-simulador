@@ -1,19 +1,19 @@
 
 
 def water_inputs(x0, dw):
-    EaOc = dw[2,1]
-    tprpm = dw[0,1]
-    fac = dw[1,1]
+    EaOc = dw[34,1]
+    tprpm = dw[32,1]
+    fac = dw[33,1]
     
     AT = sum(x0[0:11])
     sum_flows_in = tprpm*fac*AT + EaOc
     return sum_flows_in
 
-def water_outputs(x0, dw, RH, tsaoc):
+def water_outputs(x0, dw, RH, tsaoc, Um_RH):
 
-    Fpera_min = dw[3,1] 
+    Fpera_min = dw[36,1] 
     
-    if RH > 0:
+    if RH > Um_RH:
         Fpera = Fpera_min
     else:
         Fpera = 1
