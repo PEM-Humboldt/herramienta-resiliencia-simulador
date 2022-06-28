@@ -7,6 +7,6 @@ def social_fabric_increase(x0, dsf, dp, ColEA, EnfIntefr_Cobi):
     return social_fabric_increase_flow
 
 def social_fabric_decrease(x0, dsf, IntCom):
-    tDeterTS = dsf[21, 1] * ((5 - IntCom) / 5) / x0[14]
-    social_fabric_decrease_flow = tDeterTS * ((5 - IntCom) / 5) / x0[14]
+    tDeterTS = dsf[21, 1] 
+    social_fabric_decrease_flow = tDeterTS * ((5 - IntCom) / 5) * x0[14]
     return social_fabric_decrease_flow
