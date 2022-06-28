@@ -201,6 +201,7 @@ for i in range(int(ntime)):
     HealthIndex[i] = Health_auxiliary.health_index(dhealth, LongVias, S[i], len(dfd_names_row), WaterQualityIndex[i],
                                                    SoundPressureQualityIndex[i], AirQualityIndex[i])
 
+
 # Exporting time series as a .csv file
 names = np.concatenate((name_year, name_cover, name_water, name_population, name_SF_CSA, name_WQ, name_SPQ, name_LQ, name_AQ,
                         name_PHaA,  name_PperES,  name_Existence, name_S, name_FD, name_IDivAPro, name_OandE))
@@ -208,7 +209,6 @@ output = np.c_[time, Ys, WaterQualityIndex, SoundPressureQualityIndex, Landscape
                HabES_i, PperES_i, ExistenceEs_i, S, FunDiv, IDivAPro, OandE]
 model_time_series = pd.DataFrame(output, columns=names)
 model_time_series.to_csv('./outputs/model_time_series.csv', float_format='%.2f')
-
 
 # OPTIONAL - PLOT TIME SERIES
 # plt.figure(1)
