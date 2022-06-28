@@ -210,6 +210,7 @@ model_time_series = pd.DataFrame(output, columns=names)
 model_time_series.to_csv('./outputs/model_time_series.csv', float_format='%.2f')
 
 
+<<<<<<< HEAD
 # OPTIONAL - PLOT TIME SERIES
 plt.figure(1)
 for i in range(nx0_cover):
@@ -324,3 +325,119 @@ plt.legend(loc='best')
 plt.xlabel('tiempo')
 plt.grid()
 plt.show()
+=======
+# # OPTIONAL - PLOT TIME SERIES
+# plt.figure(1)
+# for i in range(nx0_cover):
+#     plt.plot(time, Ys[:, i], label=names[i+1])
+#     plt.scatter(time, Ys[:, i])
+# plt.plot(time, Yt, label='Área total')
+# plt.legend(loc='best')
+# plt.xlabel('tiempo')
+# plt.grid()
+# plt.show()
+
+# plt.figure(2)
+# for i in range(nx0_water):
+#     plt.plot(time, Ys[:, nx0_cover + i], label=names[nx0_cover + i+1])
+#     plt.scatter(time, Ys[:, nx0_cover + i])
+# plt.legend(loc='best')
+# plt.xlabel('tiempo')
+# plt.grid()
+# plt.show()
+
+# plt.figure(3)
+# plt.plot(time, WaterQualityIndex, label = name_WQ[0])
+# plt.scatter(time, WaterQualityIndex)
+# plt.legend(loc='best')
+# plt.xlabel('tiempo')
+# plt.grid()
+# plt.show()
+
+# plt.figure(4)
+# plt.plot(time, Ys[:,13], label = name_population[0])
+# plt.scatter(time, Ys[:,13])
+# plt.legend(loc='best')
+# plt.xlabel('tiempo')
+# plt.grid()
+# plt.show()
+
+# plt.figure(5)
+# for i in range(nx0_water):
+#     plt.plot(time, Ys[:, 14 + i], label=name_SF_CSA[i])
+#     plt.scatter(time, Ys[:, 14 + i])
+# plt.legend(loc='best')
+# plt.xlabel('tiempo')
+# plt.grid()
+# plt.show()
+
+# plt.figure(6)
+# for i in range(n_species):
+#     plt.plot(time, HabES_i[:, i], label = name_PHaA[i])
+#     plt.scatter(time, HabES_i[:, i])
+# plt.legend(loc='best')
+# plt.xlabel('tiempo')
+# # plt.title('Hábitat')
+# plt.grid()
+# plt.show()
+
+# plt.figure(7)
+# for i in range(n_species):
+#     plt.plot(time, PperES_i[:, i], label = name_PperES[i])
+#     plt.scatter(time, PperES_i[:, i])
+# plt.legend(loc='best')
+# plt.xlabel('tiempo')
+# # plt.title('Probabilidad de persistencia de especies')
+# plt.grid()
+# plt.show()
+
+# plt.figure(8)
+# for i in range(n_species):
+#     plt.plot(time, ExistenceEs_i[:, i], label = name_Existence[i])
+#     plt.scatter(time, ExistenceEs_i[:, i])
+# plt.legend(loc='best')
+# plt.xlabel('tiempo')
+# # plt.title('Existencia de especies')
+# plt.grid()
+# plt.show()
+
+# plt.figure(9)
+# plt.plot(time, S, label = name_S[0])
+# plt.scatter(time, S)
+# plt.legend(loc='best')
+# plt.xlabel('tiempo')
+# plt.grid()
+# plt.show()
+
+# plt.figure(10)
+# plt.plot(time, FunDiv, label = name_FD[0])
+# plt.scatter(time, FunDiv)
+# plt.legend(loc='best')
+# plt.xlabel('tiempo')
+# plt.grid()
+# plt.show()
+
+# plt.figure(11)
+# plt.plot(time, IDivAPro, label = name_IDivAPro[0])
+# plt.scatter(time, IDivAPro)
+# plt.legend(loc='best')
+# plt.xlabel('tiempo')
+# plt.grid()
+# plt.show()
+
+# plt.figure(12)
+# plt.plot(time, OandE, label = name_OandE[0])
+# plt.scatter(time, OandE)
+# plt.legend(loc='best')
+# plt.xlabel('tiempo')
+# plt.grid()
+# plt.show()
+
+# plt.figure(13)
+# plt.plot(time, HealthIndex, label = name_Health[0])
+# plt.scatter(time, HealthIndex)
+# plt.legend(loc='best')
+# plt.xlabel('tiempo')
+# plt.grid()
+# plt.show()
+>>>>>>> Final_V1
