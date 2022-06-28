@@ -6,8 +6,9 @@ from condiciones_iniciales import initial_cond_social_fabric
 from ModuloAgua import WaterQuality
 from ModuloVariablesAbioticas import AbioticVariables
 from ModuloDisponibilidadHabitat import Habitat
+from ModuloTejidoSocial import SF_auxiliary
+from ModuloSalud import Health_auxiliary
 # from ModuloDiversidadActividadesProductivas import Population
-
 import fun_ode as ode
 from scipy.integrate import odeint
 import numpy as np
@@ -45,14 +46,13 @@ dp = dp.to_numpy()
 data0_SF_CSA = initial_cond_social_fabric.initial_social_fabric()
 x0_SF_CSA =  [row[1] for row in data0_SF_CSA]
 name_SF_CSA = [row[0] for row in data0_SF_CSA]
-data_SF_CSA = pd.read_excel (r'./condiciones_iniciales/parameters.xlsx', sheet_name='social_fabric')
+data_SF_CSA = pd.read_excel (r'./condiciones_iniciales/parameters.xlsx', sheet_name='Social_fabric')
 dsf = pd.DataFrame(data_SF_CSA, columns= ['Nombre', 'Valor'])
 dsf = dsf.to_numpy()
 
-
 # INTEGRATOR CONFIGURATION
 tmin = 2020
-tmax = 2026
+tmax = 2040
 time = np.arange(tmin, tmax, 1)
 name_year = np.array(['Año'])
 ntime = len(time)
@@ -81,8 +81,8 @@ Yt = np.sum(Ys[:, 0:nx0_cover],axis=1) # axis=1 --> add rows, axis=0 --> add col
 # Water quality
 WaterQualityIndex = np.zeros(ntime)
 name_WQ = np.array(['Indice de calidad del agua'])
-mca = 4
 for i in range(ntime):
+    ColEA, EnfIntefr_Cobi, IntCom, TransCSA_ColEA, TransCSA_CuiA, mca, mcf = SF_auxiliary.SF_auxiliary_variables(Ys[i,:], dsf)
     WaterQualityIndex[i] = WaterQuality.Wquality(Ys[i,0:11], dw, mca)
 
 ## Abiotic variables
@@ -109,9 +109,7 @@ AirQualityIndex = np.zeros(ntime)
 name_AQ = np.array(['Indice de calidad de aire'])
 for i in range(ntime):
    AirQualityIndex[i] = AbioticVariables.Airquality(AN[i,:], AnoN[i,:], dav, pos_AN, pos_transA, LongVias)
-
-
-# Potential habitat availability
+# 4. Potential habitat availability
 data_habitat = pd.read_excel (r'./condiciones_iniciales/parameters.xlsx', sheet_name='Habitat_Availability')
 dh = pd.DataFrame(data_habitat, columns= ['Nombre', 'Valor'])
 dh = dh.to_numpy()
@@ -137,7 +135,6 @@ for i in range(ntime):
         S[i] = 0
     else:
         S[i] = np.count_nonzero(ExistenceEs_i[i, :] == 1)
-    
 fd_matriz = arrfd[0:n_species,1:n_species+1]
 ones_0 = sum(fd_matriz)
 ones_i = np.zeros((int(ntime), len(ones_0)))
@@ -152,7 +149,6 @@ for i in range(int(ntime)):
         FunDiv[i] = len(fd_matriz[0, :]) - (len(fd_matriz[0, :]) - len(nonzeroind))
 name_S = np.array(['Riqueza de especies'])
 name_FD = np.array(['Diversidad Funcional'])
-
 name_PHaA = {}
 name_PperES = {}
 name_Existence = {}
@@ -160,15 +156,13 @@ for i in range(n_species):
     name_PHaA[i] = "Hábitat - " + species_names[i]
     name_PperES[i] = "probabilidad de persistencia - " + species_names[i]
     name_Existence[i] = "Existencia - " + species_names[i]
-
 data = np.array(list(name_PHaA.items()))
 name_PHaA = data[:, 1]
 data = np.array(list(name_PperES.items()))
 name_PperES = data[:, 1]
 data = np.array(list(name_Existence.items()))
 name_Existence = data[:, 1]
-
-# Diversity of productive activities + occupation and employment
+# 5. Diversity of productive activities + occupation and employment
 tEmpMigra = dp[25, 1]
 tEmpPLocal = dp[26, 1]
 pMigEL = dp[27, 1]
@@ -176,7 +170,6 @@ pPLocEL = dp[28, 1]
 DivSisCon = dp[29, 1]
 tOAE_usos_i = dp[0:11, 1]
 tOAE_nousos_i = dp[11:21, 1]
-
 PMigEL = np.zeros(ntime)
 PLocEL = np.zeros(ntime)
 TOcup = np.zeros(ntime)
@@ -195,9 +188,18 @@ for i in range(int(ntime)):
         OandE[i] = OOandE[i] - TOcup[i]
     else:
         OandE[i] = 0
-        
 name_IDivAPro = np.array(['Indice de diversidad de actividades productivas'])
 name_OandE = np.array(['Ocupación y empleo'])
+
+# 6. Healt indicator
+HealthIndex = np.zeros(ntime)
+name_Health = np.array(['Indice de salud'])
+data_health = pd.read_excel (r'./condiciones_iniciales/parameters.xlsx', sheet_name='Health')
+dhealth = pd.DataFrame(data_health, columns= ['Nombre', 'Valor'])
+dhealth = dhealth.to_numpy()
+for i in range(int(ntime)):
+    HealthIndex[i] = Health_auxiliary.health_index(dhealth, LongVias, S[i], len(dfd_names_row), WaterQualityIndex[i],
+                                                   SoundPressureQualityIndex[i], AirQualityIndex[i])
 
 # Exporting time series as a .csv file
 names = np.concatenate((name_year, name_cover, name_water, name_population, name_SF_CSA, name_WQ, name_SPQ, name_LQ, name_AQ,
@@ -208,109 +210,117 @@ model_time_series = pd.DataFrame(output, columns=names)
 model_time_series.to_csv('./outputs/model_time_series.csv', float_format='%.2f')
 
 
-# OPTIONAL - PLOT TIME SERIES
-plt.figure(1)
-for i in range(nx0_cover):
-    plt.plot(time, Ys[:, i], label=names[i+1])
-    plt.scatter(time, Ys[:, i])
-plt.plot(time, Yt, label='Área total')
-plt.legend(loc='best')
-plt.xlabel('tiempo')
-plt.grid()
-plt.show()
+# # OPTIONAL - PLOT TIME SERIES
+# plt.figure(1)
+# for i in range(nx0_cover):
+#     plt.plot(time, Ys[:, i], label=names[i+1])
+#     plt.scatter(time, Ys[:, i])
+# plt.plot(time, Yt, label='Área total')
+# plt.legend(loc='best')
+# plt.xlabel('tiempo')
+# plt.grid()
+# plt.show()
 
-plt.figure(2)
-for i in range(nx0_water):
-    plt.plot(time, Ys[:, nx0_cover + i], label=names[nx0_cover + i+1])
-    plt.scatter(time, Ys[:, nx0_cover + i])
-plt.legend(loc='best')
-plt.xlabel('tiempo')
-plt.grid()
-plt.show()
+# plt.figure(2)
+# for i in range(nx0_water):
+#     plt.plot(time, Ys[:, nx0_cover + i], label=names[nx0_cover + i+1])
+#     plt.scatter(time, Ys[:, nx0_cover + i])
+# plt.legend(loc='best')
+# plt.xlabel('tiempo')
+# plt.grid()
+# plt.show()
 
-plt.figure(3)
-plt.plot(time, WaterQualityIndex, label = name_WQ[0])
-plt.scatter(time, WaterQualityIndex)
-plt.legend(loc='best')
-plt.xlabel('tiempo')
-plt.grid()
-plt.show()
+# plt.figure(3)
+# plt.plot(time, WaterQualityIndex, label = name_WQ[0])
+# plt.scatter(time, WaterQualityIndex)
+# plt.legend(loc='best')
+# plt.xlabel('tiempo')
+# plt.grid()
+# plt.show()
 
-plt.figure(4)
-plt.plot(time, Ys[:,13], label = name_population[0])
-plt.scatter(time, Ys[:,13])
-plt.legend(loc='best')
-plt.xlabel('tiempo')
-plt.grid()
-plt.show()
+# plt.figure(4)
+# plt.plot(time, Ys[:,13], label = name_population[0])
+# plt.scatter(time, Ys[:,13])
+# plt.legend(loc='best')
+# plt.xlabel('tiempo')
+# plt.grid()
+# plt.show()
 
-plt.figure(5)
-for i in range(nx0_water):
-    plt.plot(time, Ys[:, 14 + i], label=name_SF_CSA[i])
-    plt.scatter(time, Ys[:, 14 + i])
-plt.legend(loc='best')
-plt.xlabel('tiempo')
-plt.grid()
-plt.show()
+# plt.figure(5)
+# for i in range(nx0_water):
+#     plt.plot(time, Ys[:, 14 + i], label=name_SF_CSA[i])
+#     plt.scatter(time, Ys[:, 14 + i])
+# plt.legend(loc='best')
+# plt.xlabel('tiempo')
+# plt.grid()
+# plt.show()
 
-plt.figure(6)
-for i in range(n_species):
-    plt.plot(time, HabES_i[:, i], label = name_PHaA[i])
-    plt.scatter(time, HabES_i[:, i])
-plt.legend(loc='best')
-plt.xlabel('tiempo')
-# plt.title('Hábitat')
-plt.grid()
-plt.show()
+# plt.figure(6)
+# for i in range(n_species):
+#     plt.plot(time, HabES_i[:, i], label = name_PHaA[i])
+#     plt.scatter(time, HabES_i[:, i])
+# plt.legend(loc='best')
+# plt.xlabel('tiempo')
+# # plt.title('Hábitat')
+# plt.grid()
+# plt.show()
 
-plt.figure(7)
-for i in range(n_species):
-    plt.plot(time, PperES_i[:, i], label = name_PperES[i])
-    plt.scatter(time, PperES_i[:, i])
-plt.legend(loc='best')
-plt.xlabel('tiempo')
-# plt.title('Probabilidad de persistencia de especies')
-plt.grid()
-plt.show()
+# plt.figure(7)
+# for i in range(n_species):
+#     plt.plot(time, PperES_i[:, i], label = name_PperES[i])
+#     plt.scatter(time, PperES_i[:, i])
+# plt.legend(loc='best')
+# plt.xlabel('tiempo')
+# # plt.title('Probabilidad de persistencia de especies')
+# plt.grid()
+# plt.show()
 
-plt.figure(8)
-for i in range(n_species):
-    plt.plot(time, ExistenceEs_i[:, i], label = name_Existence[i])
-    plt.scatter(time, ExistenceEs_i[:, i])
-plt.legend(loc='best')
-plt.xlabel('tiempo')
-# plt.title('Existencia de especies')
-plt.grid()
-plt.show()
+# plt.figure(8)
+# for i in range(n_species):
+#     plt.plot(time, ExistenceEs_i[:, i], label = name_Existence[i])
+#     plt.scatter(time, ExistenceEs_i[:, i])
+# plt.legend(loc='best')
+# plt.xlabel('tiempo')
+# # plt.title('Existencia de especies')
+# plt.grid()
+# plt.show()
 
-plt.figure(9)
-plt.plot(time, S, label = name_S[0])
-plt.scatter(time, S)
-plt.legend(loc='best')
-plt.xlabel('tiempo')
-plt.grid()
-plt.show()
+# plt.figure(9)
+# plt.plot(time, S, label = name_S[0])
+# plt.scatter(time, S)
+# plt.legend(loc='best')
+# plt.xlabel('tiempo')
+# plt.grid()
+# plt.show()
 
-plt.figure(10)
-plt.plot(time, FunDiv, label = name_FD[0])
-plt.scatter(time, FunDiv)
-plt.legend(loc='best')
-plt.xlabel('tiempo')
-plt.grid()
-plt.show()
+# plt.figure(10)
+# plt.plot(time, FunDiv, label = name_FD[0])
+# plt.scatter(time, FunDiv)
+# plt.legend(loc='best')
+# plt.xlabel('tiempo')
+# plt.grid()
+# plt.show()
 
-plt.figure(11)
-plt.plot(time, IDivAPro, label = name_IDivAPro[0])
-plt.scatter(time, IDivAPro)
-plt.legend(loc='best')
-plt.xlabel('tiempo')
-plt.grid()
-plt.show()
+# plt.figure(11)
+# plt.plot(time, IDivAPro, label = name_IDivAPro[0])
+# plt.scatter(time, IDivAPro)
+# plt.legend(loc='best')
+# plt.xlabel('tiempo')
+# plt.grid()
+# plt.show()
 
-plt.figure(12)
-plt.plot(time, OandE, label = name_OandE[0])
-plt.scatter(time, OandE)
-plt.legend(loc='best')
-plt.xlabel('tiempo')
-plt.grid()
-plt.show()
+# plt.figure(12)
+# plt.plot(time, OandE, label = name_OandE[0])
+# plt.scatter(time, OandE)
+# plt.legend(loc='best')
+# plt.xlabel('tiempo')
+# plt.grid()
+# plt.show()
+
+# plt.figure(13)
+# plt.plot(time, HealthIndex, label = name_Health[0])
+# plt.scatter(time, HealthIndex)
+# plt.legend(loc='best')
+# plt.xlabel('tiempo')
+# plt.grid()
+# plt.show()
