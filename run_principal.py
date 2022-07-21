@@ -16,6 +16,9 @@ import matplotlib.pyplot as plt
 import pandas as pd
 import random
 
+import sys
+import getopt
+
 # initial conditions for covers (Cobi)
 data0_cover = sorted(initial_cond_cover.initial_cover())
 x0_cover = [row[1] for row in data0_cover]
@@ -114,7 +117,7 @@ data_habitat = pd.read_excel (r'./condiciones_iniciales/parameters.xlsx', sheet_
 dh = pd.DataFrame(data_habitat, columns= ['Nombre', 'Valor'])
 dh = dh.to_numpy()
 HumHa = dh[1, 1]
-BO = Ys[:, 2] # forest 
+BO = Ys[:, 2] # forest
 FunDiv = np.zeros(int(ntime))
 S = np.zeros(int(ntime)) # species richness
 dfd = pd.read_excel (r'./condiciones_iniciales/parameters.xlsx', sheet_name='Functional_diversity')
@@ -204,10 +207,16 @@ for i in range(int(ntime)):
 # Exporting time series as a .csv file
 names = np.concatenate((name_year, name_cover, name_water, name_population, name_SF_CSA, name_WQ, name_SPQ, name_LQ, name_AQ,
                         name_PHaA,  name_PperES,  name_Existence, name_S, name_FD, name_IDivAPro, name_OandE))
-output = np.c_[time, Ys, WaterQualityIndex, SoundPressureQualityIndex, LandscapeQualityIndex, AirQualityIndex, 
+output = np.c_[time, Ys, WaterQualityIndex, SoundPressureQualityIndex, LandscapeQualityIndex, AirQualityIndex,
                HabES_i, PperES_i, ExistenceEs_i, S, FunDiv, IDivAPro, OandE]
 model_time_series = pd.DataFrame(output, columns=names)
-model_time_series.to_csv('./outputs/model_time_series.csv', float_format='%.2f')
+opts, args = getopt.getopt(sys.argv[1:], "o:")
+result_name = 'model_time_series.csv'
+for opt, arg in opts:
+    if (opt == '-o'):
+        result_name = arg
+        break
+model_time_series.to_csv(f'./outputs/{result_name}', float_format='%.2f')
 
 
 # OPTIONAL - PLOT TIME SERIES
