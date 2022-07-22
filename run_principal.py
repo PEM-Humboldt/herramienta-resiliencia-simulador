@@ -19,37 +19,51 @@ import random
 import sys
 import getopt
 
+workspace = ''
+conditionsPath = r'./condiciones_iniciales/'
+parametersFile = 'parameters.xlsx'
+result_name = 'model_time_series.csv'
+
+if sys.argv[1:]:
+    opts, args = getopt.getopt(sys.argv[1:], "o:w:")
+    outputName = opts[0][1]
+    workspace = opts[1][1]
+    parametersFile = f'{workspace}_parameters.xlsx'
+    result_name = f'{workspace}_{outputName}'
+
+parametersPath = conditionsPath + parametersFile
+
 # initial conditions for covers (Cobi)
-data0_cover = sorted(initial_cond_cover.initial_cover())
+data0_cover = sorted(initial_cond_cover.initial_cover(workspace))
 x0_cover = [row[1] for row in data0_cover]
 name_cover = [row[0] for row in data0_cover]
 nc = len(x0_cover)
 # conda install openpyxl if necessary
-df = pd.read_excel (r'./condiciones_iniciales/parameters.xlsx', sheet_name='transformation_rates')
+df = pd.read_excel (parametersPath, sheet_name='transformation_rates')
 arr = df.to_numpy()
 cover_rates = arr[0:nc,1:nc+1]
 
 # initial volume of water stored (Vaa) + water available for consumption (Adc)
-data0_water = initial_cond_water.initial_water()
+data0_water = initial_cond_water.initial_water(parametersPath)
 x0_water =  [row[1] for row in data0_water]
 name_water = [row[0] for row in data0_water]
-data_water = pd.read_excel (r'./condiciones_iniciales/parameters.xlsx', sheet_name='water_parameters')
+data_water = pd.read_excel (parametersPath, sheet_name='water_parameters')
 dw = pd.DataFrame(data_water, columns= ['Nombre', 'Valor'])
 dw = dw.to_numpy()
 
 # initial population in the study area
-data0_population = initial_cond_population.initial_population()
+data0_population = initial_cond_population.initial_population(parametersPath)
 x0_population =  [row[1] for row in data0_population]
 name_population = [row[0] for row in data0_population]
-data_population = pd.read_excel (r'./condiciones_iniciales/parameters.xlsx', sheet_name='Diversity_of_activities')
+data_population = pd.read_excel (parametersPath, sheet_name='Diversity_of_activities')
 dp = pd.DataFrame(data_population, columns= ['Nombre', 'Valor'])
 dp = dp.to_numpy()
 
 # initial social fabric + socioenvironmental conflicts
-data0_SF_CSA = initial_cond_social_fabric.initial_social_fabric()
+data0_SF_CSA = initial_cond_social_fabric.initial_social_fabric(parametersPath)
 x0_SF_CSA =  [row[1] for row in data0_SF_CSA]
 name_SF_CSA = [row[0] for row in data0_SF_CSA]
-data_SF_CSA = pd.read_excel (r'./condiciones_iniciales/parameters.xlsx', sheet_name='Social_fabric')
+data_SF_CSA = pd.read_excel (parametersPath, sheet_name='Social_fabric')
 dsf = pd.DataFrame(data_SF_CSA, columns= ['Nombre', 'Valor'])
 dsf = dsf.to_numpy()
 
@@ -89,7 +103,7 @@ for i in range(ntime):
     WaterQualityIndex[i] = WaterQuality.Wquality(Ys[i,0:11], dw, mca)
 
 ## Abiotic variables
-data_abiotic = pd.read_excel (r'./condiciones_iniciales/parameters.xlsx', sheet_name='Abiotic_Variables')
+data_abiotic = pd.read_excel (parametersPath, sheet_name='Abiotic_Variables')
 dav = pd.DataFrame(data_abiotic, columns= ['Nombre', 'Valor'])
 dav = dav.to_numpy()
 pos_AN = [2, 3, 4, 6, 9] # position of matriz og natural areas
@@ -113,19 +127,19 @@ name_AQ = np.array(['Indice de calidad de aire'])
 for i in range(ntime):
    AirQualityIndex[i] = AbioticVariables.Airquality(AN[i,:], AnoN[i,:], dav, pos_AN, pos_transA, LongVias)
 # 4. Potential habitat availability
-data_habitat = pd.read_excel (r'./condiciones_iniciales/parameters.xlsx', sheet_name='Habitat_Availability')
+data_habitat = pd.read_excel (parametersPath, sheet_name='Habitat_Availability')
 dh = pd.DataFrame(data_habitat, columns= ['Nombre', 'Valor'])
 dh = dh.to_numpy()
 HumHa = dh[1, 1]
 BO = Ys[:, 2] # forest
 FunDiv = np.zeros(int(ntime))
 S = np.zeros(int(ntime)) # species richness
-dfd = pd.read_excel (r'./condiciones_iniciales/parameters.xlsx', sheet_name='Functional_diversity')
+dfd = pd.read_excel (parametersPath, sheet_name='Functional_diversity')
 arrfd = dfd.to_numpy()
 dfd_names_col = dfd.columns.values
 dfd_names_row = arrfd[:, 0]
 for i in range(ntime):
-    HabitatESi, PersistenceESi, ExistenceESi, species_names, n_species = Habitat.habitat_area(dh, BO[i], BO[0])
+    HabitatESi, PersistenceESi, ExistenceESi, species_names, n_species = Habitat.habitat_area(dh, BO[i], BO[0], workspace)
     if i==0:
         HabES_i = HabitatESi
         PperES_i = PersistenceESi
@@ -197,7 +211,7 @@ name_OandE = np.array(['Ocupación y empleo'])
 # 6. Healt indicator
 HealthIndex = np.zeros(ntime)
 name_Health = np.array(['Indice de salud'])
-data_health = pd.read_excel (r'./condiciones_iniciales/parameters.xlsx', sheet_name='Health')
+data_health = pd.read_excel (parametersPath, sheet_name='Health')
 dhealth = pd.DataFrame(data_health, columns= ['Nombre', 'Valor'])
 dhealth = dhealth.to_numpy()
 for i in range(int(ntime)):
@@ -210,12 +224,7 @@ names = np.concatenate((name_year, name_cover, name_water, name_population, name
 output = np.c_[time, Ys, WaterQualityIndex, SoundPressureQualityIndex, LandscapeQualityIndex, AirQualityIndex,
                HabES_i, PperES_i, ExistenceEs_i, S, FunDiv, IDivAPro, OandE]
 model_time_series = pd.DataFrame(output, columns=names)
-opts, args = getopt.getopt(sys.argv[1:], "o:")
-result_name = 'model_time_series.csv'
-for opt, arg in opts:
-    if (opt == '-o'):
-        result_name = arg
-        break
+
 model_time_series.to_csv(f'./outputs/{result_name}', float_format='%.2f')
 
 
