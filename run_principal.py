@@ -25,9 +25,14 @@ parametersFile = 'parameters.xlsx'
 result_name = 'model_time_series.csv'
 
 if sys.argv[1:]:
-    opts, args = getopt.getopt(sys.argv[1:], "o:w:")
-    outputName = opts[0][1]
-    workspace = opts[1][1]
+    opts = getopt.getopt(sys.argv[1:], "o:w:")[0]
+
+    for opt, arg in opts:
+        if (opt == '-o'):
+            outputName = arg
+        if (opt == '-w'):
+            workspace = arg
+
     parametersFile = f'{workspace}_parameters.xlsx'
     result_name = f'{workspace}_{outputName}'
 
