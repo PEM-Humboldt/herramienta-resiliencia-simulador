@@ -2,31 +2,21 @@ from turtle import pd
 import numpy as np
 import pandas as pd
 from sqlalchemy import create_engine
-import os
 from dotenv import load_dotenv
+from db_functions import db_connect, set_query
 
 load_dotenv()
 
 def habitat_area(dh, BO, BO0, workspace):
 
-    POSTGRES_ADDRESS = os.getenv('POSTGRES_ADDRESS')
-    POSTGRES_PORT = os.getenv('POSTGRES_PORT')
-    POSTGRES_USERNAME = os.getenv('POSTGRES_USERNAME')
-    POSTGRES_PASSWORD = os.getenv('POSTGRES_PASSWORD')
-    POSTGRES_DBNAME = os.getenv('POSTGRES_DBNAME')
-    # Do not change this long string that contains the necessary MongoDB login information
-    postgres_str = ('postgresql://{username}:{password}@{ipaddress}:{port}/{dbname}'.format(username=POSTGRES_USERNAME,
-                                                                                            password=POSTGRES_PASSWORD,
-                                                                                            ipaddress=POSTGRES_ADDRESS,
-                                                                                            port=POSTGRES_PORT,
-                                                                                            dbname=POSTGRES_DBNAME))
-
-    # Create the connection
-    cnx = create_engine(postgres_str)
+    module = 'habitat'
+    fields = ['Name', 'area_hc', 'Umbral']
+    
+    cnx = db_connect()
 
     ### query SQL to get data
-
-    layers = pd.read_sql_query(f'SELECT Name, area_hc, Umbral FROM public.{workspace}_habitat', cnx)
+    data_query = set_query(workspace, module, fields)
+    layers = pd.read_sql_query(data_query, cnx)
 
     # Determines elements of existing categories in the shape layer
     species_names = layers[["name"]].values.ravel()
