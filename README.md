@@ -14,7 +14,7 @@ Y si utiliza pip3, ejecute:
 
 ## Cómo ejecutar [WIP]
 
-Ejecute el archivo `run_principal.py`
+Ejecute el comando `python3 run_principal.py -o <nombre_archivo.csv> -w <nombre_workspace>`
 
 
 ## Autores
