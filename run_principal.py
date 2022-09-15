@@ -1,6 +1,7 @@
 from sqlalchemy import column
 from condiciones_iniciales import initial_cond_cover
 from condiciones_iniciales import initial_cond_water
+from condiciones_iniciales import initial_cond_conectivity
 from condiciones_iniciales import initial_cond_population
 from condiciones_iniciales import initial_cond_social_fabric
 from ModuloAgua import WaterQuality
@@ -48,13 +49,21 @@ df = pd.read_excel (parametersPath, sheet_name='transformation_rates')
 arr = df.to_numpy()
 cover_rates = arr[0:nc,1:nc+1]
 
-# initial volume of water stored (Vaa) + water available for consumption (Adc)
+# initial volume of water retation
 data0_water = initial_cond_water.initial_water(parametersPath)
 x0_water =  [row[1] for row in data0_water]
 name_water = [row[0] for row in data0_water]
 data_water = pd.read_excel (parametersPath, sheet_name='water_parameters')
 dw = pd.DataFrame(data_water, columns= ['Nombre', 'Valor'])
 dw = dw.to_numpy()
+
+# initial conectivity
+data0_ConectBO = initial_cond_conectivity.initial_conectBO(parametersPath)
+x0_ConectBO =  [row[1] for row in data0_ConectBO]
+name_ConectBO = [row[0] for row in data0_ConectBO]
+data_ConectBO = pd.read_excel (parametersPath, sheet_name='Habitat_Availability')
+dConect = pd.DataFrame(data_ConectBO, columns= ['Nombre', 'Valor'])
+dConect = dConect.to_numpy()
 
 # initial population in the study area
 data0_population = initial_cond_population.initial_population(parametersPath)
@@ -87,6 +96,9 @@ cover_rates_t = cover_rates.transpose()
 x0_water = np.array(x0_water)
 nx0_water = len(x0_water)
 
+x0_ConectBO = np.array(x0_ConectBO)
+nx0_ConectBO = len(x0_ConectBO)
+
 x0_population = np.array(x0_population)
 nx0_population = len(x0_population)
 
@@ -94,8 +106,8 @@ x0_SF_CSA = np.array(x0_SF_CSA)
 nx0_SF_CSA = len(x0_SF_CSA)
 
 # Integration by RK45
-x_0 = np.concatenate((x0_cover, x0_water, x0_population, x0_SF_CSA), axis=0) # [cover, water]
-Ys = odeint(ode.differential_equations, x_0, time, args=(cover_rates, cover_rates_t, nx0_cover, dw, dp, dsf)) #+  random.uniform(-5000, 5000)
+x_0 = np.concatenate((x0_cover, x0_water, x0_ConectBO, x0_population, x0_SF_CSA), axis=0) # [cover, water]
+Ys = odeint(ode.differential_equations, x_0, time, args=(cover_rates, cover_rates_t, nx0_cover, dw, dConect, dp, dsf)) #+  random.uniform(-5000, 5000)
 Yt = np.sum(Ys[:, 0:nx0_cover],axis=1) # axis=1 --> add rows, axis=0 --> add columns
 
 # SPECIAL INDICATORS
@@ -131,27 +143,29 @@ AirQualityIndex = np.zeros(ntime)
 name_AQ = np.array(['Indice de calidad de aire'])
 for i in range(ntime):
    AirQualityIndex[i] = AbioticVariables.Airquality(AN[i,:], AnoN[i,:], dav, pos_AN, pos_transA, LongVias)
+   
 # 4. Potential habitat availability
-data_habitat = pd.read_excel (parametersPath, sheet_name='Habitat_Availability')
-dh = pd.DataFrame(data_habitat, columns= ['Nombre', 'Valor'])
-dh = dh.to_numpy()
-HumHa = dh[1, 1]
+HumHa = dConect[4, 1]
 BO = Ys[:, 2] # forest
+ConectBO = Ys[:, 12] # Conectivity
 FunDiv = np.zeros(int(ntime))
 S = np.zeros(int(ntime)) # species richness
 dfd = pd.read_excel (parametersPath, sheet_name='Functional_diversity')
 arrfd = dfd.to_numpy()
 dfd_names_col = dfd.columns.values
 dfd_names_row = arrfd[:, 0]
+#-------------------------Calcular mcb
+mcb = 1 
+#------------------------
 for i in range(ntime):
-    HabitatESi, PersistenceESi, ExistenceESi, species_names, n_species = Habitat.habitat_area(dh, BO[i], BO[0], workspace)
+    HabitatESi, PersistenceESi, ExistenceESi, species_names, n_species = Habitat.habitat_area(dConect, BO[i], BO[0], ConectBO[i], mcf, mcb, workspace)
     if i==0:
         HabES_i = HabitatESi
-        PperES_i = PersistenceESi
+        IperES_i = PersistenceESi
         ExistenceEs_i = ExistenceESi
     else:
         HabES_i = np.vstack([HabES_i, HabitatESi])
-        PperES_i = np.vstack([PperES_i, PersistenceESi])
+        IperES_i = np.vstack([IperES_i, PersistenceESi])
         ExistenceEs_i = np.vstack([ExistenceEs_i, ExistenceESi])
     if BO[i] <= HumHa * BO[0]:
         S[i] = 0
@@ -161,7 +175,7 @@ fd_matriz = arrfd[0:n_species,1:n_species+1]
 ones_0 = sum(fd_matriz)
 ones_i = np.zeros((int(ntime), len(ones_0)))
 for i in range(int(ntime)):
-    posi = np.where(PperES_i[i, :] == 0)
+    posi = np.where(IperES_i[i, :] == 0)
     fd_matriz[posi, :] = 0
     ones_i[i, :] = sum(fd_matriz)
     nonzeroind = np.nonzero( ones_i[i, :])[0]
@@ -176,7 +190,7 @@ name_PperES = {}
 name_Existence = {}
 for i in range(n_species):
     name_PHaA[i] = "Hábitat - " + species_names[i]
-    name_PperES[i] = "probabilidad de persistencia - " + species_names[i]
+    name_PperES[i] = "Persistencia - " + species_names[i]
     name_Existence[i] = "Existencia - " + species_names[i]
 data = np.array(list(name_PHaA.items()))
 name_PHaA = data[:, 1]
@@ -184,32 +198,33 @@ data = np.array(list(name_PperES.items()))
 name_PperES = data[:, 1]
 data = np.array(list(name_Existence.items()))
 name_Existence = data[:, 1]
-# 5. Diversity of productive activities + occupation and employment
-tEmpMigra = dp[25, 1]
-tEmpPLocal = dp[26, 1]
-pMigEL = dp[27, 1]
-pPLocEL = dp[28, 1]
-DivSisCon = dp[29, 1]
-tOAE_usos_i = dp[0:11, 1]
-tOAE_nousos_i = dp[11:21, 1]
-PMigEL = np.zeros(ntime)
-PLocEL = np.zeros(ntime)
-TOcup = np.zeros(ntime)
+
+# 5. Diversity of productive activities
+tOACobj = dp[12:23,1]
+VacOAci = dp[23:33,1]
+pPoEcAc = dp[33,1]
+DivSisCon = dp[34,1]
+
+PoETEA = np.zeros(ntime)
+PoOcu = np.zeros(ntime)
+VacOCobj = np.zeros(ntime)
+VacO = np.zeros(ntime)
 IDivAPro = np.zeros(ntime)
-OOandE = np.zeros(ntime)
-OandE = np.zeros(ntime)
+
 for i in range(int(ntime)):
-    PMigEL[i] = pMigEL * Ys[i, 13]
-    PLocEL[i] = pPLocEL * Ys[i, 13]
-    TOcup[i] = PMigEL[i] + PLocEL[i]
-    nei_usos = tOAE_usos_i * Ys[i, 0:11]
-    Nei_usos = sum(tOAE_usos_i * Ys[i, 0:11])
-    IDivAPro[i] = DivSisCon * (sum(nei_usos * (nei_usos - 1 )) + sum(tOAE_nousos_i * (tOAE_nousos_i - 1))) / ((Nei_usos + sum(tOAE_nousos_i)) * ((Nei_usos + sum(tOAE_nousos_i)) - 1))
-    OOandE[i] = Nei_usos + sum(tOAE_nousos_i)
-    if TOcup[i] <= OOandE[i]:
-        OandE[i] = OOandE[i] - TOcup[i]
+    # print(Ys[i, 0:11])
+    VacOCobj = tOACobj * Ys[i, 0:11]
+    VacO[i] = sum(VacOCobj) + sum(VacOAci)
+    PoETEA[i] = pPoEcAc * Ys[i, 14]
+    
+    PoETEA[i] = sum(VacOCobj) + sum(VacOAci) - PoETEA[i] 
+   
+    IDivAPro[i] = DivSisCon * (sum(VacOCobj * (VacOCobj - 1 )) + sum(VacOAci * (VacOAci - 1))) / ((sum(VacOCobj) + sum(VacOAci)) * ((sum(VacOCobj) + sum(VacOAci)) - 1))
+
+    if PoETEA[i] <= VacO[i]:
+        PoOcu[i] = VacO[i] - PoETEA[i]
     else:
-        OandE[i] = 0
+        PoOcu[i] = 0
 name_IDivAPro = np.array(['Indice de diversidad de actividades productivas'])
 name_OandE = np.array(['Ocupación y empleo'])
 
@@ -227,7 +242,7 @@ for i in range(int(ntime)):
 names = np.concatenate((name_year, name_cover, name_water, name_population, name_SF_CSA, name_WQ, name_SPQ, name_LQ, name_AQ,
                         name_PHaA,  name_PperES,  name_Existence, name_S, name_FD, name_IDivAPro, name_OandE))
 output = np.c_[time, Ys, WaterQualityIndex, SoundPressureQualityIndex, LandscapeQualityIndex, AirQualityIndex,
-               HabES_i, PperES_i, ExistenceEs_i, S, FunDiv, IDivAPro, OandE]
+               HabES_i, IperES_i, ExistenceEs_i, S, FunDiv, IDivAPro]
 model_time_series = pd.DataFrame(output, columns=names)
 
 model_time_series.to_csv(f'./outputs/{result_name}', float_format='%.2f')
@@ -290,11 +305,11 @@ model_time_series.to_csv(f'./outputs/{result_name}', float_format='%.2f')
 
 # plt.figure(7)
 # for i in range(n_species):
-#     plt.plot(time, PperES_i[:, i], label = name_PperES[i])
-#     plt.scatter(time, PperES_i[:, i])
+#     plt.plot(time, IperES_i[:, i], label = name_PperES[i])
+#     plt.scatter(time, IperES_i[:, i])
 # plt.legend(loc='best')
 # plt.xlabel('tiempo')
-# # plt.title('Probabilidad de persistencia de especies')
+# # plt.title('Persistencia de especies')
 # plt.grid()
 # plt.show()
 
@@ -304,7 +319,7 @@ model_time_series.to_csv(f'./outputs/{result_name}', float_format='%.2f')
 #     plt.scatter(time, ExistenceEs_i[:, i])
 # plt.legend(loc='best')
 # plt.xlabel('tiempo')
-# # plt.title('Existencia de especies')
+# # plt.title('Permanencia de especies')
 # plt.grid()
 # plt.show()
 

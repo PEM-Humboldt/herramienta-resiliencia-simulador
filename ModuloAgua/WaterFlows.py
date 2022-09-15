@@ -1,22 +1,57 @@
 
+import math
 
-def water_inputs(x0, dw):
-    EaOc = dw[34,1]
-    tprpm = dw[32,1]
-    fac = dw[33,1]
+def water_inputs_outputs(x0, dw, mca, PAE): # Infiltration
+    Qm = dw[0,1]
+    ConsIndusEner = dw[1,1]
+    T  = dw[2,1]
+    tConsDomes = dw[3,1]
+    pR = dw[4,1]
+    rho1 = dw[5,1]
+    pCampCam = dw[6,1]
+    pPtoMz = dw[7,1]
+    pPHA = dw[8,1]
+    pPor = dw[9,1]
+    tPerco = dw[10,1]
+    ConsACobj = dw[11:19,1]
+    tFS = dw[19,1]
+    PPT = dw[20,1]
+    
+     
+    L = 300 + 0.25 * T + 0.0025 * T ** 2
+    ETR = PPT / math.sqrt(0.9 + (PPT / L) ** 2)
+    ConsHDomes = tConsDomes * PAE # * mca ** (1 / 4)  # revisar esta ecuación 
+    EsC = Qm + ConsIndusEner + ConsHDomes
     
     AT = sum(x0[0:11])
-    sum_flows_in = tprpm*fac*AT + EaOc
-    return sum_flows_in
-
-def water_outputs(x0, dw, RH, tsaoc, Um_RH):
-
-    Fpera_min = dw[36,1] 
+    AlmaSat = 10000 * AT * pPHA * pPor
+    pPtoMz = pPtoMz * AlmaSat
+    CapCam = pCampCam * AlmaSat
+    rho = rho1 * (CapCam - pPtoMz) + pPtoMz
     
-    if RH > Um_RH:
-        Fpera = Fpera_min
+    RetHs = x0[11]
+    if RetHs < rho:
+        R = pR * Qm
     else:
-        Fpera = 1
+        R = 0
+    
+    Infil = 10 * AT * (PPT - ETR) + R - EsC
+    
+    if RetHs > AlmaSat:
+        FS = tFS * (RetHs - AlmaSat)
+    else:
+        FS = 0
         
-    sum_flows_out = Fpera*x0[11] + tsaoc*x0[11]
-    return sum_flows_out
+    Perco = tPerco * RetHs
+    DH_AHeter = ConsACobj[2] * x0[0]
+    DH_AHomo = ConsACobj[3] * x0[1]
+    DH_ABO = ConsACobj[0] * x0[2]
+    DH_AHerb = ConsACobj[1] * x0[3]
+    DH_APastHomo = ConsACobj[4] * x0[5]
+    DH_ADveget = ConsACobj[5] * x0[6]
+    DH_AVSecun = ConsACobj[6] * x0[9]
+    DH_ADegra = ConsACobj[7] * x0[10]
+    
+    DH = DH_AHeter + DH_AHomo + DH_ABO + DH_AHerb + DH_APastHomo + DH_ADveget + DH_AVSecun + DH_ADegra
+    
+    return Infil, FS, Perco, DH

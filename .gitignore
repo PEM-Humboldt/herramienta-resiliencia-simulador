@@ -1,4 +1,6 @@
 # Byte-compiled / optimized / DLL files
+*parameters*.xlsx
+!parameters.xlsx
 __pycache__/
 *.py[cod]
 *$py.class
