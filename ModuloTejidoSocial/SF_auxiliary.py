@@ -1,19 +1,11 @@
 import math
 import numpy as np
 
-# def common_interes(AN, connectivity, AirQualityIndex, WaterQualityIndex, ATrans, Population, PovertyIndex, Ocupation,
-#                    DivSisAliLoc, ProgIyP):
-#     PracCAgua = 1
-#     PracCFauna = 1
-#     PractCBO = 1
-#     BuPracProduc = 1
-#     return IntCom
-
 def SF_auxiliary_variables(x0, dsf):
-    pmPerProgParCom = dsf[22, 1]
-    pPer_1ProgParCom = dsf[23, 1]
-    pPer_2ProgParCom = dsf[24, 1]
-    IntCom = dsf[25,1]
+    pmPerProgParCom = dsf[4, 1]
+    pPer_1ProgParCom = dsf[5, 1]
+    pPer_2ProgParCom = dsf[6, 1]
+    IntCom = dsf[11, 1]
     
     # if t == tmin:
     #     IntCom = 3 # dsf[25,1]
@@ -21,25 +13,22 @@ def SF_auxiliary_variables(x0, dsf):
     #     IntCom = common_interes(AN, connectivity, AirQualityIndex, WaterQualityIndex, ATrans, Population, PovertyIndex, Ocupation,
     #                DivSisAliLoc, ProgIyP)
     
-    facTransConsCSA_ColAc = dsf[20, 1]
-    facTransConsCSA_CuAg = dsf[19, 1]
-    ProgIyP = math.trunc(pPer_1ProgParCom * pPer_2ProgParCom * x0[13] / pmPerProgParCom)
+    facTransConsCSA_ColAc = dsf[1, 1]
+    facTransConsCSA_CuAg = dsf[2, 1]
+    PAE = sum(x0[13:16])
+    ProgIyP = math.trunc(pPer_1ProgParCom * pPer_2ProgParCom * PAE / pmPerProgParCom)
     ColEA = IntCom * np.log((ProgIyP + 1))
-    TransCSA_ColEA = (facTransConsCSA_ColAc * ColEA) / 15
+    TranConsConfColAct = (facTransConsCSA_ColAc * ColEA) / 15
     
-    tCreEnfIntegr_Cobi = dsf[12:18, 1]
-    pos_transA = [0, 1, 5, 7, 8, 10] 
-    Cobi_EnfIntegr = x0[pos_transA]
-    EnfIntefr_Cobi = np.zeros(len(Cobi_EnfIntegr))
-    for i in range(len(Cobi_EnfIntegr)):
-        if Cobi_EnfIntegr[i] > 0:
-            EnfIntefr_Cobi[i] = tCreEnfIntegr_Cobi[i] * x0[14]
-        else:
-            EnfIntefr_Cobi[i] = 0
-    PCuAg_Cobi = dsf[0:6, 1]
-    PCuFau_Cobi = dsf[6:12, 1]
-    mca = sum(PCuAg_Cobi * EnfIntefr_Cobi) / len(EnfIntefr_Cobi)
-    mcf = sum(PCuFau_Cobi * EnfIntefr_Cobi) / len(EnfIntefr_Cobi)
+    tCrecEI = dsf[3, 1]
+    EnfInt = tCrecEI * (IntCom / 5) * x0[16]
     
-    TransCSA_CuiA = (mca * facTransConsCSA_CuAg) / 2
-    return ColEA, EnfIntefr_Cobi, IntCom, TransCSA_ColEA, TransCSA_CuiA, mca, mcf
+    pCagua = dsf[7, 1]
+    pCfauna = dsf[8, 1]
+    pCbosque = dsf[9, 1]
+    mca = EnfInt ** (1-pCagua)
+    mcf = EnfInt ** (1-pCfauna)
+    mcb = EnfInt ** (1-pCbosque)
+    
+    TranConsConfCAgua = (facTransConsCSA_CuAg * ColEA) / 2
+    return ColEA, EnfInt, IntCom, TranConsConfColAct, TranConsConfCAgua, mca, mcf, mcb

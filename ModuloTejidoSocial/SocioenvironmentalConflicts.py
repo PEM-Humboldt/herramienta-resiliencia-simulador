@@ -1,12 +1,12 @@
 
 
-def conflict_increment(x0, dsf, EnfIntefr_Cobi):
+def conflict_increment(x0, dsf, EnfInt):
     # print(x0[17])
-    FacIncrCS = dsf[18, 1]
-    conflict_increment_flow = (FacIncrCS * x0[17]) / (1+ sum(EnfIntefr_Cobi))
-    return conflict_increment_flow
+    fIncConfSocAm = dsf[0, 1]
+    IncConfSocAm = (fIncConfSocAm * x0[17]) / (1+ EnfInt)
+    return IncConfSocAm
 
-def conflict_tranformation(x0, TransCSA_ColEA, TransCSA_CuiA):
+def conflict_tranformation(x0, TranConsConfColAct, TranConsConfCAgua):
 
-    conflict_transformation_flow = (TransCSA_ColEA + TransCSA_CuiA) * x0[17]
-    return conflict_transformation_flow
+    TransConfSocAm =  x0[17] * (TranConsConfColAct + TranConsConfCAgua)
+    return TransConfSocAm

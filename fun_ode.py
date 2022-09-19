@@ -11,9 +11,10 @@ from ModuloTejidoSocial import SocialFabric
 from ModuloTejidoSocial import SocioenvironmentalConflicts
 from ModuloTejidoSocial import SF_auxiliary
 
-def differential_equations(x0, t, cover_rates, cover_rates_t, nx0_cover, dw, dConect, dp, dsf):    
+def differential_equations(x0, t, cover_rates, cover_rates_t, nx0_cover, dw, dConect, dp, dsf):
+     
     derivatives = np.zeros(len(x0))
-    ColEA, EnfIntefr_Cobi, IntCom, TransCSA_ColEA, TransCSA_CuiA, mca, mcf = SF_auxiliary.SF_auxiliary_variables(x0, dsf)
+    ColEA, EnfInt, IntCom, TranConsConfColAct, TranConsConfCAgua, mca, mcf, mcb = SF_auxiliary.SF_auxiliary_variables(x0, dsf)
     
     # 1- soil covers module
     for k in range(nx0_cover):
@@ -54,7 +55,7 @@ def differential_equations(x0, t, cover_rates, cover_rates_t, nx0_cover, dw, dCo
     
     # 4- social fabric 
     
-    derivatives[k + 6] = SocialFabric.social_fabric_increase(x0, dsf, dp, ColEA, EnfIntefr_Cobi) - SocialFabric.social_fabric_decrease(x0, dsf, IntCom)
-    derivatives[k + 7] = SocioenvironmentalConflicts.conflict_increment(x0, dsf, EnfIntefr_Cobi) - SocioenvironmentalConflicts.conflict_tranformation(x0, TransCSA_ColEA, TransCSA_CuiA)
+    derivatives[k + 6] = SocialFabric.social_fabric_increase(x0, dsf, dp, ColEA, EnfInt) - SocialFabric.social_fabric_decrease(x0, dsf, IntCom)
+    derivatives[k + 7] = SocioenvironmentalConflicts.conflict_increment(x0, dsf, EnfInt) - SocioenvironmentalConflicts.conflict_tranformation(x0, TranConsConfColAct, TranConsConfCAgua)
     
     return derivatives
