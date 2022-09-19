@@ -105,6 +105,9 @@ nx0_population = len(x0_population)
 x0_SF_CSA = np.array(x0_SF_CSA)
 nx0_SF_CSA = len(x0_SF_CSA)
 
+# Calculation of common interest
+# IntCom = 5  % actualizar este valor por el calculo desde la matriz
+
 # Integration by RK45
 x_0 = np.concatenate((x0_cover, x0_water, x0_ConectBO, x0_population, x0_SF_CSA), axis=0) # [cover, water]
 Ys = odeint(ode.differential_equations, x_0, time, args=(cover_rates, cover_rates_t, nx0_cover, dw, dConect, dp, dsf)) #+  random.uniform(-5000, 5000)
@@ -114,16 +117,19 @@ Yt = np.sum(Ys[:, 0:nx0_cover],axis=1) # axis=1 --> add rows, axis=0 --> add col
 
 # Water quality
 WaterQualityIndex = np.zeros(ntime)
+mca = np.zeros(ntime)
+mcf = np.zeros(ntime)
+mcb = np.zeros(ntime)
 name_WQ = np.array(['Indice de calidad del agua'])
 for i in range(ntime):
-    ColEA, EnfIntefr_Cobi, IntCom, TransCSA_ColEA, TransCSA_CuiA, mca, mcf = SF_auxiliary.SF_auxiliary_variables(Ys[i,:], dsf)
-    WaterQualityIndex[i] = WaterQuality.Wquality(Ys[i,0:11], dw, mca)
+    ColEA, EnfIntefr_Cobi, IntCom, TransCSA_ColEA, TransCSA_CuiA, mca[i], mcf[i], mcb[i] = SF_auxiliary.SF_auxiliary_variables(Ys[i,:], dsf)
+    WaterQualityIndex[i] = WaterQuality.Wquality(Ys[i,0:11], dw, mca[i])
 
 ## Abiotic variables
 data_abiotic = pd.read_excel (parametersPath, sheet_name='Abiotic_Variables')
 dav = pd.DataFrame(data_abiotic, columns= ['Nombre', 'Valor'])
 dav = dav.to_numpy()
-pos_AN = [2, 3, 4, 6, 9] # position of matriz og natural areas
+pos_AN = [2, 3, 4, 6, 9] # position of matriz of natural areas
 pos_transA = [0, 1, 5, 7, 8, 10] # position of matriz of transdormed areas
 AN = Ys[:, pos_AN] # natural areas position
 AnoN = Ys[:, pos_transA] # Transformed areas position
@@ -133,18 +139,14 @@ SoundPressureQualityIndex = np.zeros(ntime)
 name_SPQ = np.array(['Indice de presión sonora'])
 for i in range(ntime):
     SoundPressureQualityIndex[i] = AbioticVariables.SoundPressurequality(AN[i,:], AnoN[i,:], dav, pos_AN, pos_transA, LongVias)
-# 2. Landscape quality
-LandscapeQualityIndex = np.zeros(ntime)
-name_LQ = np.array(['Indice de calidad paisajistica'])
-for i in range(ntime):
-    LandscapeQualityIndex[i] = AbioticVariables.Ladscapequality(AN[i,:], AnoN[i,:])
-# 3. Air quality
+    
+# 2. Air quality
 AirQualityIndex = np.zeros(ntime)
 name_AQ = np.array(['Indice de calidad de aire'])
 for i in range(ntime):
    AirQualityIndex[i] = AbioticVariables.Airquality(AN[i,:], AnoN[i,:], dav, pos_AN, pos_transA, LongVias)
    
-# 4. Potential habitat availability
+# 3. Potential habitat availability
 HumHa = dConect[4, 1]
 BO = Ys[:, 2] # forest
 ConectBO = Ys[:, 12] # Conectivity
@@ -154,11 +156,9 @@ dfd = pd.read_excel (parametersPath, sheet_name='Functional_diversity')
 arrfd = dfd.to_numpy()
 dfd_names_col = dfd.columns.values
 dfd_names_row = arrfd[:, 0]
-#-------------------------Calcular mcb
-mcb = 1 
-#------------------------
+
 for i in range(ntime):
-    HabitatESi, PersistenceESi, ExistenceESi, species_names, n_species = Habitat.habitat_area(dConect, BO[i], BO[0], ConectBO[i], mcf, mcb, workspace)
+    HabitatESi, PersistenceESi, ExistenceESi, species_names, n_species = Habitat.habitat_area(dConect, BO[i], BO[0], ConectBO[i], mcf[i], mcb[i], workspace)
     if i==0:
         HabES_i = HabitatESi
         IperES_i = PersistenceESi
@@ -199,7 +199,7 @@ name_PperES = data[:, 1]
 data = np.array(list(name_Existence.items()))
 name_Existence = data[:, 1]
 
-# 5. Diversity of productive activities
+# 4. Diversity of productive activities
 tOACobj = dp[12:23,1]
 VacOAci = dp[23:33,1]
 pPoEcAc = dp[33,1]
@@ -228,7 +228,7 @@ for i in range(int(ntime)):
 name_IDivAPro = np.array(['Indice de diversidad de actividades productivas'])
 name_OandE = np.array(['Ocupación y empleo'])
 
-# 6. Healt indicator
+# 5. Healt indicator
 HealthIndex = np.zeros(ntime)
 name_Health = np.array(['Indice de salud'])
 data_health = pd.read_excel (parametersPath, sheet_name='Health')
@@ -239,10 +239,10 @@ for i in range(int(ntime)):
                                                    SoundPressureQualityIndex[i], AirQualityIndex[i])
 
 # Exporting time series as a .csv file
-names = np.concatenate((name_year, name_cover, name_water, name_population, name_SF_CSA, name_WQ, name_SPQ, name_LQ, name_AQ,
+names = np.concatenate((name_year, name_cover, name_water, name_ConectBO, name_population, name_SF_CSA, name_WQ, name_SPQ, name_AQ,
                         name_PHaA,  name_PperES,  name_Existence, name_S, name_FD, name_IDivAPro, name_OandE))
-output = np.c_[time, Ys, WaterQualityIndex, SoundPressureQualityIndex, LandscapeQualityIndex, AirQualityIndex,
-               HabES_i, IperES_i, ExistenceEs_i, S, FunDiv, IDivAPro]
+output = np.c_[time, Ys, WaterQualityIndex, SoundPressureQualityIndex, AirQualityIndex,
+               HabES_i, IperES_i, ExistenceEs_i, S, FunDiv, IDivAPro, PoOcu]
 model_time_series = pd.DataFrame(output, columns=names)
 
 model_time_series.to_csv(f'./outputs/{result_name}', float_format='%.2f')
