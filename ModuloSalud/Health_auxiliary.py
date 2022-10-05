@@ -1,15 +1,16 @@
 
 
-def health_index(dhealth, LongVias, S, num_S, WaterQualityIndex, SoundPressureQualityIndex, AirQualityIndex):
-    vias_poten = dhealth[0, 1]
-    Con_fin = dhealth[1, 1]
+def health_index(dhealth, FunDiv, num_FunDiv, WaterQualityIndex, NoiseAttenuation, AirQualityIndex, InProvAliCobi):
+    Long_vias = dhealth[0, 1]
+    vias_poten = dhealth[1, 1]
     Num_UPA = dhealth[2, 1]
     Num_UPA_AutCons = dhealth[3, 1]
-    Infra_estruc = dhealth[4, 1]
-    Con_Acces = ((LongVias / vias_poten) + Con_fin) / 2
+    Ind_pobreza = dhealth[4, 1]
+    Con_Acces = Long_vias / vias_poten
     Autoconsumo = Num_UPA_AutCons / Num_UPA
-    Div_Sis_Alim_Loc = (Autoconsumo + Con_Acces + S / num_S) / num_S
-    HealthIndex = (Div_Sis_Alim_Loc + AirQualityIndex + WaterQualityIndex) ** Infra_estruc / (1 + SoundPressureQualityIndex) 
     
-    return HealthIndex
+    Div_Sis_Alim_Loc = (Autoconsumo + Con_Acces + FunDiv/ num_FunDiv + InProvAliCobi)  / 3
     
+    HealthIndex = (Div_Sis_Alim_Loc + (1-AirQualityIndex/500) + WaterQualityIndex + NoiseAttenuation) ** (1-Ind_pobreza)/4
+    
+    return HealthIndex, Div_Sis_Alim_Loc
