@@ -1,11 +1,11 @@
 import math
 import numpy as np
 
-def SF_auxiliary_variables(x0, dsf):
+def SF_auxiliary_variables(x0, dsf, IntCom):
     pmPerProgParCom = dsf[4, 1]
     pPer_1ProgParCom = dsf[5, 1]
     pPer_2ProgParCom = dsf[6, 1]
-    IntCom = dsf[11, 1]
+    # IntCom = dsf[11, 1]
     
     # if t == tmin:
     #     IntCom = 3 # dsf[25,1]
@@ -16,12 +16,12 @@ def SF_auxiliary_variables(x0, dsf):
     facTransConsCSA_ColAc = dsf[1, 1]
     facTransConsCSA_CuAg = dsf[2, 1]
     PAE = sum(x0[13:16])
-    ProgIyP = math.trunc(pPer_1ProgParCom * pPer_2ProgParCom * PAE / pmPerProgParCom)
+    ProgIyP = math.trunc(pPer_1ProgParCom * (1+pPer_2ProgParCom) * PAE / pmPerProgParCom)
     ColEA = IntCom * np.log((ProgIyP + 1))
     TranConsConfColAct = (facTransConsCSA_ColAc * ColEA) / 15
     
     tCrecEI = dsf[3, 1]
-    EnfInt = tCrecEI * (IntCom / 5) * x0[16]
+    EnfInt = tCrecEI * (IntCom / 5) * x0[18]
     
     pCagua = dsf[7, 1]
     pCfauna = dsf[8, 1]
@@ -31,4 +31,4 @@ def SF_auxiliary_variables(x0, dsf):
     mcb = EnfInt ** (1-pCbosque)
     
     TranConsConfCAgua = (facTransConsCSA_CuAg * ColEA) / 2
-    return ColEA, EnfInt, IntCom, TranConsConfColAct, TranConsConfCAgua, mca, mcf, mcb
+    return ColEA, EnfInt, TranConsConfColAct, TranConsConfCAgua, mca, mcf, mcb
