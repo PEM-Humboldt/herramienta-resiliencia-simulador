@@ -4,24 +4,25 @@ import math
 def water_inputs_outputs(x0, dw, mca, PAE): # Infiltration
     Qm = dw[0,1]
     ConsIndusEner = dw[1,1]
-    T  = dw[2,1]
-    tConsDomes = dw[3,1]
-    pR = dw[4,1]
-    rho1 = dw[5,1]
-    pCampCam = dw[6,1]
-    pPtoMz = dw[7,1]
-    pPHA = dw[8,1]
-    pPor = dw[9,1]
-    tPerco = dw[10,1]
-    ConsACobj = dw[11:19,1]
-    tFS = dw[19,1]
-    PPT = dw[20,1]
+    ConsOtros = dw[2,1]
+    T  = dw[3,1]
+    tConsDomes = dw[4,1]
+    pR = dw[5,1]
+    rho1 = dw[6,1]
+    pCampCam = dw[7,1]
+    pPtoMz = dw[8,1]
+    pPHA = dw[9,1]
+    pPor = dw[10,1]
+    tPerco = dw[11,1]
+    ConsACobj = dw[12:20,1]
+    tFS = dw[20,1]
+    PPT = dw[21,1]
     
      
     L = 300 + 0.25 * T + 0.0025 * T ** 2
     ETR = PPT / math.sqrt(0.9 + (PPT / L) ** 2)
     ConsHDomes = tConsDomes * PAE # * mca ** (1 / 4)  # revisar esta ecuación 
-    EsC = Qm + ConsIndusEner + ConsHDomes
+    EsC = Qm + ConsIndusEner + ConsHDomes + ConsOtros
     
     AT = sum(x0[0:11])
     AlmaSat = 10000 * AT * pPHA * pPor
