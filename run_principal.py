@@ -135,7 +135,7 @@ for i in range(ntime):
     ColEA, EnfIntefr_Cobi,TransCSA_ColEA, TransCSA_CuiA, mca[i], mcf[i], mcb[i] = SF_auxiliary.SF_auxiliary_variables(Ys[i,:], dsf, IntCom)
     ICAiv_original[i,:] = ICAi
     ICAmv_original[i] = ICAm
-    ICAmv_modificada[i] = (ICAm / 4) * (1 + 2 * ICAm ** -mca[i])
+    ICAmv_modificada[i] = (ICAm / 4) * (1 + 2 * ICAm ** -(0.5+mca[i]))
 
 ## Abiotic variables
 
@@ -236,20 +236,24 @@ name_PperES = data[:, 1]
 data = np.array(list(name_Existence.items()))
 name_Existence = data[:, 1]
 
-# 5. Healt indicator
+# 5. Health indicator
 HealthIndex = np.zeros(ntime)
 InProvAliCobi = np.zeros(ntime)
 DivSisAlimLocal = np.zeros(ntime)
+Con_Acces = np.zeros(ntime)
 name_Health = np.array(['Indice de salud'])
 name_DivSisAlimLocal = np.array(['Diversidad del sistema alimentario local'])
+name_Con_Acces = np.array(['Indice de condiciones de acceso'])
+
 data_health = pd.read_excel (parametersPath, sheet_name='Health')
 dhealth = pd.DataFrame(data_health, columns= ['Nombre', 'Valor'])
 dhealth = dhealth.to_numpy()
 peso_Cobi = np.array([50, 30, 35, 40, 50, 25, 5, 15, 0, 40, 10])
+
 for i in range(int(ntime)):
     InProvAliCobi[i] = (1 / sum(Ys[i, 0:11])) * (sum((peso_Cobi * Ys[i, 0:11]) )/ sum(peso_Cobi))
     
-    HealthIndex[i], DivSisAlimLocal[i] = Health_auxiliary.health_index(dhealth, FunDiv[i], len(dfd_names_col)-1, ICAmv_modificada[i],
+    HealthIndex[i], DivSisAlimLocal[i], Con_Acces[i] = Health_auxiliary.health_index(time[0], time[i], time, dhealth, FunDiv[i], len(dfd_names_col)-1, ICAmv_modificada[i],
                                                    np.mean(NoiseAttenuationMatriz[i,20:22]),  ICAairmv[i], InProvAliCobi[i])
 
 
@@ -258,22 +262,35 @@ tOACobj = dp[12:16,1]
 posCobj = [0, 1, 5, 8]
 VacOAci = dp[16:30,1]
 pPoEcAc = dp[30,1]
-DivSisCon = dp[31,1]
+PersFortHabEmpren_0 = x_0[16]
+PersFortDivInclu_0 = x_0[17]
 
 PoETEA = np.zeros(ntime)
 PoOcu = np.zeros(ntime)
 VacOCobj = np.zeros(ntime)
 VacO = np.zeros(ntime)
 IDivAPro = np.zeros(ntime)
+AporteDivEmpren = np.zeros(ntime)
+AporteDivInclus = np.zeros(ntime)
 
 for i in range(int(ntime)):
     # print(Ys[i, 0:11])
     VacOCobj = tOACobj * Ys[i, posCobj]
     VacO[i] = sum(VacOCobj) + sum(VacOAci)
     PoETEA[i] = pPoEcAc * Ys[i, 14]
-    PoOcu[i] = sum(VacOCobj) + sum(VacOAci) - PoETEA[i] 
+    PoOcu[i] = sum(VacOCobj) + sum(VacOAci) - PoETEA[i]
+    
+    if  Ys[i, 16] < PersFortHabEmpren_0:
+        AporteDivEmpren[i] = Ys[i, 16] / PersFortHabEmpren_0
+    else:
+        AporteDivEmpren[i] = 1
+        
+    if  Ys[i, 17] < PersFortDivInclu_0:
+        AporteDivInclus[i] = Ys[i, 17] / PersFortDivInclu_0
+    else:
+        AporteDivInclus[i] = 1
    
-    IDivAPro[i] = DivSisCon * DivSisAlimLocal[i] * (sum(VacOCobj * (VacOCobj - 1 )) + sum(VacOAci * (VacOAci - 1))) / ((sum(VacOCobj) + sum(VacOAci)) * ((sum(VacOCobj) + sum(VacOAci)) - 1))
+    IDivAPro[i] = (((AporteDivEmpren[i] + AporteDivInclus[i]) / 2) * (sum(VacOCobj * (VacOCobj - 1 )) + sum(VacOAci * (VacOAci - 1))) / ((sum(VacOCobj) + sum(VacOAci)) * ((sum(VacOCobj) + sum(VacOAci)) - 1))) ** (1 - DivSisAlimLocal[i])
 
     if PoETEA[i] <= VacO[i]:
         PoOcu[i] = VacO[i] - PoETEA[i]
@@ -287,7 +304,7 @@ names = np.concatenate((name_year, name_cover, name_water, name_ConectBO, name_p
                         name_WQ, name_AirQ, name_NoiseAte, name_PHaA,  name_PperES,  name_Existence, name_S,
                         name_FD, name_Health, name_DivSisAlimLocal, name_IDivAPro, name_OandE))
 output = np.c_[time, Ys, ICAairiv, ICAmv_modificada, ICAairiv, ICAairmv, NoiseAttenuationMatriz, HabES_i,
-               IperES_i, ExistenceEs_i, S, FunDiv, HealthIndex, DivSisAlimLocal,IDivAPro, PoOcu]
+               IperES_i, ExistenceEs_i, S, FunDiv, HealthIndex, DivSisAlimLocal, IDivAPro, PoOcu]
 model_time_series = pd.DataFrame(output, columns=names)
 
 

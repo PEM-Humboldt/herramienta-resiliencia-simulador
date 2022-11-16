@@ -1,8 +1,8 @@
 import numpy as np
 
-def social_fabric_increase(x0, dsf, dp, ColEA, EnfInt, PAE):
+def social_fabric_increase(x0, dsf, ColEA, EnfInt, PAE):
     # print(x0[16])
-    DivSisCon = dp[32,1]
+    DivSisCon = dsf[11,1]
     DialSab = (ColEA ** DivSisCon) / 15
     social_fabric_increase_flow = EnfInt * DialSab * x0[18] * (1 - x0[18])
     return social_fabric_increase_flow
