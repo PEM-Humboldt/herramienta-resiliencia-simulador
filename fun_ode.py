@@ -18,7 +18,10 @@ def differential_equations(x0, t, cover_rates, cover_rates_t, nx0_cover, dw, dCo
     
     # 1- soil covers module
     for k in range(nx0_cover):
-        derivatives[k] = sum(x0[0:nx0_cover]*cover_rates[:][k]) - sum(x0[k]*cover_rates_t[k][:])
+        tCobiCobj = cover_rates[k][:]
+        tCobjCobi = cover_rates_t[:][k]
+        
+        derivatives[k] = sum(tCobjCobi * x0[0:nx0_cover]) - sum(tCobiCobj * x0[k])
               
     # 2- water resource module
     
