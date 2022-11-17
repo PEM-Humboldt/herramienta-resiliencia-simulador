@@ -18,7 +18,7 @@ def differential_equations(x0, t, cover_rates, cover_rates_t, nx0_cover, dw, dCo
     
     # 1- soil covers module
     for k in range(nx0_cover):
-        derivatives[k] = sum(x0[0:nx0_cover]*cover_rates[k][:]) - sum(x0[k]*cover_rates_t[k][:])
+        derivatives[k] = sum(x0[0:nx0_cover]*cover_rates[:][k]) - sum(x0[k]*cover_rates_t[k][:])
               
     # 2- water resource module
     
@@ -45,10 +45,12 @@ def differential_equations(x0, t, cover_rates, cover_rates_t, nx0_cover, dw, dCo
     EmigracionNoNa = dp[9,1]
     EmigracionPoET = dp[10,1]
     EmigracionPoAM = dp[11,1]
-    tFortEmpren = dp[32, 1]
-    tFortDivInclu = dp[33, 1]
-    VigenciaPersFortHabEmpren = dp[34, 1]
-    VigenciaPersFortDivInclu = dp[35, 1]
+    pPoEcAc = dp[30, 1]
+    tFortEmpren = dp[31, 1]
+    tFortDivInclu = dp[32, 1]
+    VigenciaPersFortHabEmpren = dp[33, 1]
+    VigenciaPersFortDivInclu = dp[34, 1]
+    
 
     NoNa = x0[13]
     PoET = x0[14]
@@ -61,16 +63,16 @@ def differential_equations(x0, t, cover_rates, cover_rates_t, nx0_cover, dw, dCo
     derivatives[k + 5] = tEnvejPEA * PoET + InmigracionPoAM - tMortaPoAM * PoAM - EmigracionPoAM
     
     PAE0 = x_0[13] + x_0[14] + x_0[15]
-    tEmigPoET = (EmigracionPoET / PAE0) * 1000
+    tEmigPoET = (EmigracionPoET / PAE0)
     tDisPersFortHabEmpren = tMortaPoET + tEnvejPEA + tEmigPoET
-    derivatives[k + 6] = tFortEmpren * PoET - VigenciaPersFortHabEmpren * tDisPersFortHabEmpren * PersFortHabEmpren
+    derivatives[k + 6] = tFortEmpren * pPoEcAc * PoET - VigenciaPersFortHabEmpren * tDisPersFortHabEmpren * PersFortHabEmpren
     
-    tDisPersFortDivInclu = (tMortaNoNa + tMortaPoET + tMortaPoAM) / 3 + (EmigracionNoNa + EmigracionPoET + EmigracionPoAM) / (3 * PAE0) * 1000
+    tDisPersFortDivInclu = (tMortaNoNa + tMortaPoET + tMortaPoAM) / 3 + (EmigracionNoNa + EmigracionPoET + EmigracionPoAM) / (3 * PAE0)
     derivatives[k + 7] = tFortDivInclu * PAE - VigenciaPersFortDivInclu * tDisPersFortDivInclu * PersFortDivInclu
     
     # 5- social fabric 
     
-    derivatives[k + 8] = SocialFabric.social_fabric_increase(x0, dsf, dp, ColEA, EnfInt, PAE) - SocialFabric.social_fabric_decrease(x0, dsf, IntCom)
+    derivatives[k + 8] = SocialFabric.social_fabric_increase(x0, dsf, ColEA, EnfInt, PAE) - SocialFabric.social_fabric_decrease(x0, dsf, IntCom)
     derivatives[k + 9] = SocioenvironmentalConflicts.conflict_increment(x0, dsf, EnfInt) - SocioenvironmentalConflicts.conflict_tranformation(x0, TranConsConfColAct, TranConsConfCAgua)
     
     return derivatives
