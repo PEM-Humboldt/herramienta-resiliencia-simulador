@@ -1,15 +1,12 @@
 from operator import index
 import pandas as pd
 
-def IntCom_fun(parametersPath):
-    data = pd.read_excel (parametersPath, sheet_name='Common_interes')
-    df = pd.DataFrame(data, columns= ['Indicador', 'Valor'])
-    df = df.to_numpy()
-    natural_capital = df[0:2, 1]
-    production = df[2:4, 1]
-    wellbeing = df[4:6, 1]
-    governance = df[6:12, 1]
+def IntCom_fun(AN, AE, Prod_usos, HabitatESi, num_Espi, IndVacOpup, Conect, Autoconsumo, Ind_pobreza, dci):
+    protected_areas = dci[0, 1]
+    BuePracAgro = dci[1, 1]
+    BuePracUExt = dci[2, 1]
+    governance = dci[3:7, 1]
     
-    Comm_int = (sum(natural_capital) + sum(production) + sum(wellbeing) + sum(governance)) / 2
+    Comm_int = (protected_areas + BuePracAgro + BuePracUExt + sum(governance) + AN/AE + (2/3)**Conect + (sum(HabitatESi)/num_Espi) / AE + Prod_usos/AE + (1-Ind_pobreza) + IndVacOpup + Autoconsumo) / 3.2
     
     return Comm_int

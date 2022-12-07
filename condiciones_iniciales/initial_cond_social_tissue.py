@@ -1,6 +1,6 @@
 import pandas as pd
 
-def initial_social_fabric(parametersPath):
+def initial_social_tissue(parametersPath):
 
     data = pd.read_excel (parametersPath, sheet_name='initial_conditions')
     df = pd.DataFrame(data, index=[7, 8, 9, 10], columns= ['Nombre', 'Valor'])
