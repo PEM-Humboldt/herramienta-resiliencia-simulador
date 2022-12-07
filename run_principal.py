@@ -3,18 +3,19 @@ from condiciones_iniciales import initial_cond_cover
 from condiciones_iniciales import initial_cond_water
 from condiciones_iniciales import initial_cond_conectivity
 from condiciones_iniciales import initial_cond_population
-from condiciones_iniciales import initial_cond_social_fabric
+from condiciones_iniciales import initial_cond_social_tissue
 from condiciones_iniciales import common_interes
 from ModuloDisponibilidadHabitat import Habitat
 from ModuloTejidoSocial import SF_auxiliary
 from ModuloSalud import Health_auxiliary
+from ModuloDisponibilidadHabitat import Habitat_Espi
 # from ModuloDiversidadActividadesProductivas import Population
 import fun_ode as ode
 from scipy.integrate import odeint
 import numpy as np
 import matplotlib.pyplot as plt
 import pandas as pd
-import random
+import math
 
 import sys
 import getopt
@@ -58,7 +59,7 @@ dw = dw.to_numpy()
 
 # initial conectivity
 data0_ConectBO = initial_cond_conectivity.initial_conectBO(parametersPath)
-x0_ConectBO =  [row[1] for row in data0_ConectBO]
+x0_ConectBO = [row[1] for row in data0_ConectBO]
 name_ConectBO = [row[0] for row in data0_ConectBO]
 data_ConectBO = pd.read_excel (parametersPath, sheet_name='Habitat_Availability')
 dConect = pd.DataFrame(data_ConectBO, columns= ['Nombre', 'Valor'])
@@ -73,15 +74,25 @@ dp = pd.DataFrame(data_population, columns= ['Nombre', 'Valor'])
 dp = dp.to_numpy()
 
 # initial social fabric + socioenvironmental conflicts
-data0_SF_CSA = initial_cond_social_fabric.initial_social_fabric(parametersPath)
+data0_SF_CSA = initial_cond_social_tissue.initial_social_tissue(parametersPath)
 x0_SF_CSAt=  [row[1] for row in data0_SF_CSA]
 name_SF_CSAt = [row[0] for row in data0_SF_CSA]
 x0_SF_CSA = x0_SF_CSAt[0:2]
 name_SF_CSA = name_SF_CSAt[0:2]
 
-data_SF_CSA = pd.read_excel (parametersPath, sheet_name='Social_fabric')
+data_SF_CSA = pd.read_excel (parametersPath, sheet_name='social_tissue')
 dsf = pd.DataFrame(data_SF_CSA, columns= ['Nombre', 'Valor'])
 dsf = dsf.to_numpy()
+
+# initial health
+data_health = pd.read_excel (parametersPath, sheet_name='Health')
+dhealth = pd.DataFrame(data_health, columns= ['Nombre', 'Valor'])
+dhealth = dhealth.to_numpy()
+
+# initial common interest
+data_common = pd.read_excel (parametersPath, sheet_name='Common_interes')
+dci = pd.DataFrame(data_common, columns= ['Indicador', 'Valor'])
+dci = dci.to_numpy()
 
 # INTEGRATOR CONFIGURATION
 tmin = x0_SF_CSAt[2]
@@ -107,12 +118,9 @@ nx0_population = len(x0_population)
 x0_SF_CSA = np.array(x0_SF_CSA)
 nx0_SF_CSA = len(x0_SF_CSA)
 
-# Calculation of common interest
-IntCom = common_interes.IntCom_fun(parametersPath) 
-
 # Integration by RK45
 x_0 = np.concatenate((x0_cover, x0_water, x0_ConectBO, x0_population, x0_SF_CSA), axis=0) # [cover, water]
-Ys = odeint(ode.differential_equations, x_0, time, args=(cover_rates, cover_rates_t, nx0_cover, dw, dConect, dp, dsf, IntCom, x_0)) #+  random.uniform(-5000, 5000)
+Ys = odeint(ode.differential_equations, x_0, time, args=(cover_rates, cover_rates_t, nx0_cover, dw, dConect, dp, dsf, x_0, parametersPath, workspace, dhealth, dci)) #+  random.uniform(-5000, 5000)
 Yt = np.sum(Ys[:, 0:nx0_cover],axis=1) # axis=1 --> add rows, axis=0 --> add columns
 
 # SPECIAL INDICATORS
@@ -125,27 +133,55 @@ name_WQ = np.array(['ICA OD', 'ICA SST', 'ICA DQO', 'ICA CE', 'ICA pH', 'ICA agu
 data_WQ = pd.read_excel (parametersPath, sheet_name='wate_quality')
 dwq = pd.DataFrame(data_WQ, columns= ['ICA OD', 'ICA SST', 'ICA DQO', 'ICA CE', 'ICA pH'])
 dwq = dwq.to_numpy()
-ICAi = np.mean(dwq, axis=0)
-ICAm = np.mean(ICAi)
+ICAi = np.nanmean(dwq, axis=0)
+ICAm = np.nanmean(ICAi)
 ICAiv_original = np.transpose([[None for ICAi in range(ntime)] for ICAi in range(len(ICAi))])
 ICAmv_original = [None for ICAm in range(ntime)]
 ICAmv_modificada = [None for ICAm in range(ntime)]
 
+# 2. Productive activities
+tOACobj = dp[12:16,1]
+posCobj = [0, 1, 5, 8]
+VacOAci = dp[16:30,1]
+pPoEcAc = dp[30,1]
+Num_UPA = dhealth[2, 1]
+Num_UPA_AutCons = dhealth[3, 1]
+Autoconsumo = Num_UPA_AutCons / Num_UPA
+Ind_pobreza = dhealth[4, 1]
+EnfIntefr_Cobi = np.zeros(ntime)
+ColEA = np.zeros(ntime)
+IntCom = np.zeros(ntime)
+TransCSA_ColEA = np.zeros(ntime)
+TransCSA_CuiA = np.zeros(ntime)
+ProgIyP = np.zeros(ntime)
 for i in range(ntime):
-    ColEA, EnfIntefr_Cobi,TransCSA_ColEA, TransCSA_CuiA, mca[i], mcf[i], mcb[i] = SF_auxiliary.SF_auxiliary_variables(Ys[i,:], dsf, IntCom)
+    Prod_usos = Ys[i, 0] + Ys[i, 1] + Ys[i, 8]
+    HabitatESi = Habitat_Espi.habitat_area_Espi(x_0[2], Ys[i, 2],workspace)
+    num_Espi = len(HabitatESi)
+    VacOCobj = tOACobj * Ys[i, posCobj]
+    PoETEA = pPoEcAc * Ys[i, 14]
+    PoOcu = sum(VacOCobj) + sum(VacOAci) - PoETEA
+    
+    if PoOcu >= 0:
+        IndVacOpup = 1
+    else:
+        IndVacOpup = 0
+    IntCom[i] = common_interes.IntCom_fun(sum(Ys[i, 2:5]), sum(Ys[i, 0:11]), Prod_usos, HabitatESi, num_Espi, IndVacOpup, Ys[i, 12], Autoconsumo, Ind_pobreza, dci)
+
+    ColEA[i], EnfIntefr_Cobi[i],TransCSA_ColEA[i], TransCSA_CuiA[i], mca[i], mcf[i], mcb[i], ProgIyP[i] = SF_auxiliary.SF_auxiliary_variables(Ys[i,:], dsf, IntCom[i])
     ICAiv_original[i,:] = ICAi
     ICAmv_original[i] = ICAm
     ICAmv_modificada[i] = (ICAm / 4) * (1 + 2 * ICAm ** -(0.5+mca[i]))
 
 ## Abiotic variables
 
-# 2. Air quality
+# 3. Air quality
 name_AirQ = np.array(['ICA PM10', 'ICA PM 2.5', 'ICA CO', 'ICA SO2', 'ICA NO2', 'ICA O3','ICA aire promedio regional'])
 data_AirQ = pd.read_excel (parametersPath, sheet_name ='Air_quality')
 dairq = pd.DataFrame(data_AirQ, columns= ['ICA PM10', 'ICA PM 2,5', 'ICA CO', 'ICA SO2', 'ICA NO2', 'ICA O3'])
 dairq = dairq.to_numpy()
-ICAairi = np.mean(dairq, axis=0)
-ICAairm = np.mean(ICAairi)
+ICAairi = np.nanmean(dairq, axis=0)
+ICAairm = np.nanmean(ICAairi)
 ICAairiv = np.transpose([[None for ICAairi in range(ntime)] for ICAairi in range(len(ICAairi))])
 ICAairmv = [None for ICAairm in range(ntime)]
 
@@ -153,7 +189,7 @@ for i in range(ntime):
     ICAairiv[i,:] = ICAairi
     ICAairmv[i] = ICAairm
 
-# 3. Sound presure - Noise attenuation indicator
+# 4. Sound presure - Noise attenuation indicator
 name_NoiseAte = np.array(['Atenuación día Agricola', 'Atenuación día Bosque',
                       'Atenuación día Herbazales', 'Atenuación día Humedales', 
                       'Atenuación día Pasturas homogeneas', 'Atenuación día Suelos desprovistos de vegetación (natural)',
@@ -171,6 +207,14 @@ dav = pd.DataFrame(data_sound, columns= ['Umbral día (db)',	'Umbral noche (db)'
                                          'Atenuación (db)',	'Promedio día (db)',
                                          'Promedio noche (db)'])
 dav = dav.to_numpy()
+davm = np.nanmean(dav, axis=0)
+a3 = dav[:,3]
+a4 = dav[:,4]
+a3[np.isnan(a3)] = davm[3]
+a4[np.isnan(a4)] = davm[4]
+dav[:,3] = a3
+dav[:,4] = a4
+
 ACob = Ys[:, 0:11] 
 NoiseAttenuationMatriz = np.transpose([[None for name_NoiseAte in range(ntime)] for name_NoiseAte in range(len(name_NoiseAte))])
 
@@ -180,18 +224,25 @@ for i in range(ntime):
     
     NoiseAttenuationMatriz[i,1:10] = -((dav[1:10,3] - dav[1:10,0]) / dav[1:10,3]) + abs((((dav[1:10,3] - dav[1:10,2] * sum(ACob[i,0:2]) / sum(ACob[i,:])) - dav[1:10,0]) / (dav[1:10,3] - dav[1:10,2] * ACob[i,2:11] / sum(ACob[i,:])))) # agricola dia
     NoiseAttenuationMatriz[i,11:20] = -((dav[1:10,4] - dav[1:10,1]) / dav[1:10,4]) + abs((((dav[1:10,4] - dav[1:10,2] * sum(ACob[i,0:2]) / sum(ACob[i,:])) - dav[1:10,1]) / (dav[1:10,4] - dav[1:10,2] * ACob[i,2:11] / sum(ACob[i,:])))) # agricola noche
-    NoiseAttenuationMatriz[i,20] = np.mean(NoiseAttenuationMatriz[i,0:10])
-    NoiseAttenuationMatriz[i,21] = np.mean(NoiseAttenuationMatriz[i,10:20])
+    NoiseAttenuationMatriz[i,20] = np.nanmean(NoiseAttenuationMatriz[i,0:10])
+    NoiseAttenuationMatriz[i,21] = np.nanmean(NoiseAttenuationMatriz[i,10:20])
    
-# 4. Potential habitat availability
+# 5. Potential habitat availability
 HumHa = 0.3
 BO = Ys[:, 2] # forest
-ConectBO = Ys[:, 12] # Conectivity
+ConectBO = (2/3) ** Ys[:, 12] # Conectivity
+for i in range(ntime):
+    if ConectBO[i] <= 1:
+        ConectBO[i] = ConectBO[i]
+    else:
+        ConectBO[i] = 1
+    
 FunDiv = np.zeros(int(ntime))
 S = np.zeros(int(ntime)) # species richness
 dfd = pd.read_excel (parametersPath, sheet_name='Functional_diversity')
 arrfd = dfd.to_numpy()
 dfd_names_col = dfd.columns.values
+dfd_names_col = np.delete(dfd_names_col, 0, 0)
 dfd_names_row = arrfd[:, 0]
 
 for i in range(ntime):
@@ -222,6 +273,13 @@ for i in range(int(ntime)):
         FunDiv[i] = len(fd_matriz[0, :]) - (len(fd_matriz[0, :]) - len(nonzeroind))
 name_S = np.array(['Riqueza de especies'])
 name_FD = np.array(['Diversidad Funcional'])
+# Species per Function
+name_EspixFun = {}
+for i in range(len(dfd_names_col)):
+    name_EspixFun[i] = "Número de especies - " + dfd_names_col[i]
+data = np.array(list(name_EspixFun.items()))
+name_EspixFun = data[:, 1]
+
 name_PHaA = {}
 name_PperES = {}
 name_Existence = {}
@@ -236,7 +294,7 @@ name_PperES = data[:, 1]
 data = np.array(list(name_Existence.items()))
 name_Existence = data[:, 1]
 
-# 5. Health indicator
+# 6. Health indicator
 HealthIndex = np.zeros(ntime)
 InProvAliCobi = np.zeros(ntime)
 DivSisAlimLocal = np.zeros(ntime)
@@ -245,9 +303,6 @@ name_Health = np.array(['Indice de salud'])
 name_DivSisAlimLocal = np.array(['Diversidad del sistema alimentario local'])
 name_Con_Acces = np.array(['Indice de condiciones de acceso'])
 
-data_health = pd.read_excel (parametersPath, sheet_name='Health')
-dhealth = pd.DataFrame(data_health, columns= ['Nombre', 'Valor'])
-dhealth = dhealth.to_numpy()
 peso_Cobi = np.array([50, 30, 35, 40, 50, 25, 5, 15, 0, 40, 10])
 
 for i in range(int(ntime)):
@@ -257,13 +312,13 @@ for i in range(int(ntime)):
                                                    np.mean(NoiseAttenuationMatriz[i,20:22]),  ICAairmv[i], InProvAliCobi[i])
 
 
-# 6. Diversity of productive activities
+# 7. Diversity of productive activities
 tOACobj = dp[12:16,1]
 posCobj = [0, 1, 5, 8]
 VacOAci = dp[16:30,1]
 pPoEcAc = dp[30,1]
-PersFortHabEmpren_0 = x_0[16]
-PersFortDivInclu_0 = x_0[17]
+PersFortHabEmpren_0 = np.trunc(x_0[16])
+PersFortDivInclu_0 = np.trunc(x_0[17])
 
 PoETEA = np.zeros(ntime)
 PoOcu = np.zeros(ntime)
@@ -275,40 +330,140 @@ AporteDivInclus = np.zeros(ntime)
 
 for i in range(int(ntime)):
     # print(Ys[i, 0:11])
-    VacOCobj = tOACobj * Ys[i, posCobj]
-    VacO[i] = sum(VacOCobj) + sum(VacOAci)
-    PoETEA[i] = pPoEcAc * Ys[i, 14]
-    PoOcu[i] = sum(VacOCobj) + sum(VacOAci) - PoETEA[i]
+    VacOCobj = np.trunc(tOACobj * Ys[i, posCobj])
+    VacO[i] = np.trunc(sum(VacOCobj) + sum(VacOAci))
+    PoETEA[i] = np.trunc(pPoEcAc * Ys[i, 14])
+    PoOcu[i] = np.trunc(sum(VacOCobj) + sum(VacOAci) - PoETEA[i])
     
     if  Ys[i, 16] < PersFortHabEmpren_0:
-        AporteDivEmpren[i] = Ys[i, 16] / PersFortHabEmpren_0
+        AporteDivEmpren[i] = np.trunc(Ys[i, 16]) / PersFortHabEmpren_0
     else:
         AporteDivEmpren[i] = 1
         
     if  Ys[i, 17] < PersFortDivInclu_0:
-        AporteDivInclus[i] = Ys[i, 17] / PersFortDivInclu_0
+        AporteDivInclus[i] = np.trunc(Ys[i, 17]) / PersFortDivInclu_0
     else:
         AporteDivInclus[i] = 1
    
     IDivAPro[i] = (((AporteDivEmpren[i] + AporteDivInclus[i]) / 2) * (sum(VacOCobj * (VacOCobj - 1 )) + sum(VacOAci * (VacOAci - 1))) / ((sum(VacOCobj) + sum(VacOAci)) * ((sum(VacOCobj) + sum(VacOAci)) - 1))) ** (1 - DivSisAlimLocal[i])
 
-    if PoETEA[i] <= VacO[i]:
-        PoOcu[i] = VacO[i] - PoETEA[i]
+    if VacO[i] - PoETEA[i] >= 0:
+        PoOcu[i] = 1
     else:
-        PoOcu[i] = 0
+        PoOcu[i] = VacO[i] - PoETEA[i]
 name_IDivAPro = np.array(['Indice de diversidad de actividades productivas'])
 name_OandE = np.array(['Personas que están ocupadas'])
 
+# 8. Standardized conectivity
+ConectBOn = (2/3) ** (Ys[:,12])
+name_ConectBOn = np.array(['Conectividad normalizada'])
+# 9. Total population
+Ys[:,13] = np.trunc(Ys[:,13])
+Ys[:,14] = np.trunc(Ys[:,14])
+Ys[:,15] = np.trunc(Ys[:,15])
+Ys[:,16] = np.trunc(Ys[:,16])
+Ys[:,17] = np.trunc(Ys[:,17])
+PAE = np.trunc(Ys[:,13]) + np.trunc(Ys[:,14]) + np.trunc(Ys[:,15])
+name_PAE = np.array(['Población total'])
+# 10. Water consumption
+ConsHDomes = dw[4,1] * PAE
+name_ConsHDomes = np.array(['Consumo de agua doméstico'])
+EsC = dw[0,1] + dw[1,1] + ConsHDomes + dw[2,1]
+name_EsC = np.array(['Escorrentía'])
+# 11. Productive activities indices
+name_VacOcup = np.array(['Vacantes de ocupación'])
+name_AporEmpren = np.array(['Aporte a la diversidad de actividades productivas desde el fortalecemiento de emprendimiento'])
+name_AporDiver = np.array(['Aporte a la diversidad de actividades productivas desde el fortalecimiento en diversidad e inclusión'])
+name_PoETEA = np.array(['Población economicamente activa'])
+# 12. Social tissue indices
+name_EnfInte = np.array(['Enfoque integrado'])
+name_ColAct = np.array(['Colaboración entre actores'])
+name_IntCom = np.array(['Interés Común'])
+name_TransCSA_ColEA = np.array(['Transformación de conflictos por colaboración entre actores'])
+name_TransCSA_CuiA = np.array(['Transformación de conflictos por cuidado del agua'])
+name_ProgIyP = np.array(['Programas de información y participación comunitaria'])
+# 13. Health indices
+name_InProvAliCobi = np.array(['Indice de provisión de alimento por coberturas'])
+
 # Exporting time series as a .csv file
-names = np.concatenate((name_year, name_cover, name_water, name_ConectBO, name_population, name_SF_CSA,
-                        name_WQ, name_AirQ, name_NoiseAte, name_PHaA,  name_PperES,  name_Existence, name_S,
-                        name_FD, name_Health, name_DivSisAlimLocal, name_IDivAPro, name_OandE))
-output = np.c_[time, Ys, ICAairiv, ICAmv_modificada, ICAairiv, ICAairmv, NoiseAttenuationMatriz, HabES_i,
-               IperES_i, ExistenceEs_i, S, FunDiv, HealthIndex, DivSisAlimLocal, IDivAPro, PoOcu]
+names = np.concatenate((name_year, 
+                        name_cover, 
+                        name_water, 
+                        name_ConectBO, 
+                        name_population, 
+                        name_SF_CSA,
+#--------------------------------------------------------------------   
+                        name_PAE,
+                        name_ConectBOn,
+                        name_ConsHDomes,
+                        name_EsC,
+                        name_WQ, 
+                        name_AirQ, 
+                        name_NoiseAte, 
+                        name_PHaA, 
+                        name_PperES, 
+                        name_Existence, 
+                        name_S,
+                        name_FD,
+                        name_EspixFun,
+                        name_Health,
+                        name_Con_Acces,
+                        name_DivSisAlimLocal, 
+                        name_InProvAliCobi,
+                        name_IDivAPro, 
+                        name_VacOcup,
+                        name_AporEmpren,
+                        name_AporDiver,
+                        name_OandE,
+                        name_PoETEA,
+                        name_EnfInte,
+                        name_ColAct,
+                        name_IntCom,
+                        name_TransCSA_ColEA,
+                        name_TransCSA_CuiA,
+                        name_ProgIyP
+                        ))
+output = np.c_[time, 
+               Ys, # cover + water + conectivity + population + social tissue
+#----------------------------------------------------------------------------------------
+               PAE,
+               ConectBOn,
+               ConsHDomes,
+               EsC,
+               ICAiv_original,
+               ICAmv_original,
+               ICAmv_modificada,
+               ICAairiv,
+               ICAairmv, 
+               NoiseAttenuationMatriz, 
+               HabES_i,
+               IperES_i, 
+               ExistenceEs_i, 
+               S, 
+               FunDiv, 
+               ones_i,
+               HealthIndex, 
+               Con_Acces,
+               DivSisAlimLocal, 
+               InProvAliCobi,
+               IDivAPro, 
+               VacO,
+               AporteDivEmpren,
+               AporteDivInclus,
+               PoOcu,
+               PoETEA,
+               EnfIntefr_Cobi,
+               ColEA,
+               IntCom,
+               TransCSA_ColEA,
+               TransCSA_CuiA,
+               ProgIyP
+               ]
 model_time_series = pd.DataFrame(output, columns=names)
 
+model_time_series.to_csv(f'./outputs/{result_name}', float_format='%.2f',  encoding='utf-8-sig')
 
-model_time_series.to_csv(f'./outputs/{result_name}', float_format='%.2f')
+# model_time_series.to_csv(f'./outputs/{result_name}', float_format='%.2f', sep=';', decimal=',', encoding='utf-8-sig')
 
 
 # OPTIONAL - PLOT TIME SERIES
