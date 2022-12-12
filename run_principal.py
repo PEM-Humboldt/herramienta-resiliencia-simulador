@@ -317,8 +317,8 @@ tOACobj = dp[12:16,1]
 posCobj = [0, 1, 5, 8]
 VacOAci = dp[16:30,1]
 pPoEcAc = dp[30,1]
-PersFortHabEmpren_0 = np.trunc(x_0[16])
-PersFortDivInclu_0 = np.trunc(x_0[17])
+PersFortHabEmpren_0 = (x_0[16])
+PersFortDivInclu_0 = (x_0[17])
 
 PoETEA = np.zeros(ntime)
 PoOcu = np.zeros(ntime)
@@ -330,18 +330,18 @@ AporteDivInclus = np.zeros(ntime)
 
 for i in range(int(ntime)):
     # print(Ys[i, 0:11])
-    VacOCobj = np.trunc(tOACobj * Ys[i, posCobj])
-    VacO[i] = np.trunc(sum(VacOCobj) + sum(VacOAci))
-    PoETEA[i] = np.trunc(pPoEcAc * Ys[i, 14])
-    PoOcu[i] = np.trunc(sum(VacOCobj) + sum(VacOAci) - PoETEA[i])
+    VacOCobj = (tOACobj * Ys[i, posCobj])
+    VacO[i] = (sum(VacOCobj) + sum(VacOAci))
+    PoETEA[i] = (pPoEcAc * Ys[i, 14])
+    PoOcu[i] = (sum(VacOCobj) + sum(VacOAci) - PoETEA[i])
     
     if  Ys[i, 16] < PersFortHabEmpren_0:
-        AporteDivEmpren[i] = np.trunc(Ys[i, 16]) / PersFortHabEmpren_0
+        AporteDivEmpren[i] = (Ys[i, 16]) / PersFortHabEmpren_0
     else:
         AporteDivEmpren[i] = 1
         
     if  Ys[i, 17] < PersFortDivInclu_0:
-        AporteDivInclus[i] = np.trunc(Ys[i, 17]) / PersFortDivInclu_0
+        AporteDivInclus[i] = (Ys[i, 17]) / PersFortDivInclu_0
     else:
         AporteDivInclus[i] = 1
    
@@ -358,12 +358,12 @@ name_OandE = np.array(['Personas que están ocupadas'])
 ConectBOn = (2/3) ** (Ys[:,12])
 name_ConectBOn = np.array(['Conectividad normalizada'])
 # 9. Total population
-Ys[:,13] = np.trunc(Ys[:,13])
-Ys[:,14] = np.trunc(Ys[:,14])
-Ys[:,15] = np.trunc(Ys[:,15])
-Ys[:,16] = np.trunc(Ys[:,16])
-Ys[:,17] = np.trunc(Ys[:,17])
-PAE = np.trunc(Ys[:,13]) + np.trunc(Ys[:,14]) + np.trunc(Ys[:,15])
+Ys[:,13] = (Ys[:,13])
+Ys[:,14] = (Ys[:,14])
+Ys[:,15] = (Ys[:,15])
+Ys[:,16] = (Ys[:,16])
+Ys[:,17] = (Ys[:,17])
+PAE = (Ys[:,13]) + (Ys[:,14]) + (Ys[:,15])
 name_PAE = np.array(['Población total'])
 # 10. Water consumption
 ConsHDomes = dw[4,1] * PAE
@@ -424,9 +424,28 @@ names = np.concatenate((name_year,
                         name_ProgIyP
                         ))
 output = np.c_[time, 
-               Ys, # cover + water + conectivity + population + social tissue
+               Ys[:,0],
+               Ys[:,1],
+               Ys[:,2],
+               Ys[:,3],
+               Ys[:,4],
+               Ys[:,5],
+               Ys[:,6],
+               Ys[:,7],
+               Ys[:,8],
+               Ys[:,9],
+               Ys[:,10],
+               Ys[:,11],
+               Ys[:,12],
+               np.trunc(Ys[:,13]),
+               np.trunc(Ys[:,14]),
+               np.trunc(Ys[:,15]),
+               np.trunc(Ys[:,16]),
+               np.trunc(Ys[:,17]),
+               Ys[:,18],
+               Ys[:,19],
 #----------------------------------------------------------------------------------------
-               PAE,
+               np.trunc(PAE),
                ConectBOn,
                ConsHDomes,
                EsC,
@@ -447,11 +466,11 @@ output = np.c_[time,
                DivSisAlimLocal, 
                InProvAliCobi,
                IDivAPro, 
-               VacO,
+               np.trunc(VacO),
                AporteDivEmpren,
                AporteDivInclus,
-               PoOcu,
-               PoETEA,
+               np.trunc(PoOcu),
+               np.trunc(PoETEA),
                EnfIntefr_Cobi,
                ColEA,
                IntCom,
@@ -461,7 +480,7 @@ output = np.c_[time,
                ]
 model_time_series = pd.DataFrame(output, columns=names)
 
-model_time_series.to_csv(f'./outputs/{result_name}', float_format='%.2f',  encoding='utf-8-sig')
+model_time_series.to_csv(f'./outputs/{result_name}', float_format='%.2f', index=False,  encoding='utf-8-sig')
 
 # model_time_series.to_csv(f'./outputs/{result_name}', float_format='%.2f', sep=';', decimal=',', encoding='utf-8-sig')
 

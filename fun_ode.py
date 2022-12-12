@@ -27,8 +27,8 @@ def differential_equations(x0, t, cover_rates, cover_rates_t, nx0_cover, dw, dCo
     posCobj = [0, 1, 5, 8]
     VacOAci = dp[16:30,1]
     pPoEcAc = dp[30,1]
-    VacOCobj = np.trunc(tOACobj * x0[posCobj])
-    PoETEA = np.trunc(pPoEcAc * x0[14])
+    VacOCobj = (tOACobj * x0[posCobj])
+    PoETEA = (pPoEcAc * x0[14])
     PoOcu = sum(VacOCobj) + sum(VacOAci) - PoETEA
     
     if PoOcu >= 0:
@@ -55,7 +55,7 @@ def differential_equations(x0, t, cover_rates, cover_rates_t, nx0_cover, dw, dCo
               
     # 2- water resource module
     
-    PAE = np.trunc(np.trunc(x0[13]) + np.trunc(x0[14]) + np.trunc(x0[15]))
+    PAE = ((x0[13]) + (x0[14]) + (x0[15]))
     Infil, FS, Perco, DH = WaterFlows.water_inputs_outputs(x0, dw, mca, PAE)
 
     derivatives[k + 1] = Infil - DH - FS - Perco
@@ -85,17 +85,17 @@ def differential_equations(x0, t, cover_rates, cover_rates_t, nx0_cover, dw, dCo
     VigenciaPersFortDivInclu = dp[34, 1]
     
 
-    NoNa = np.trunc(x0[13])
-    PoET = np.trunc(x0[14])
-    PoAM = np.trunc(x0[15])
-    PersFortHabEmpren = np.trunc(x0[16])
-    PersFortDivInclu = np.trunc(x0[17])
+    NoNa = (x0[13])
+    PoET = (x0[14])
+    PoAM = (x0[15])
+    PersFortHabEmpren = (x0[16])
+    PersFortDivInclu = (x0[17])
 
     derivatives[k + 3] = tNaciPAE * PAE + InmigracionNoNa - tCreciPoET * NoNa - tMortaNoNa * NoNa - EmigracionNoNa
     derivatives[k + 4] = tCreciPoET * NoNa + InmigracionPoET - tEnvejPEA * PoET - tMortaPoET * PoET - EmigracionPoET
     derivatives[k + 5] = tEnvejPEA * PoET + InmigracionPoAM - tMortaPoAM * PoAM - EmigracionPoAM
     
-    PAE0 = np.trunc(x_0[13]) + np.trunc(x_0[14]) + np.trunc(x_0[15])
+    PAE0 = (x_0[13]) + (x_0[14]) + (x_0[15])
     tEmigPoET = (EmigracionPoET / PAE0)
     tDisPersFortHabEmpren = tMortaPoET + tEnvejPEA + tEmigPoET
     derivatives[k + 6] = tFortEmpren * pPoEcAc * PoET - VigenciaPersFortHabEmpren * tDisPersFortHabEmpren * PersFortHabEmpren
