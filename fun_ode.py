@@ -41,10 +41,10 @@ def differential_equations(x0, t, cover_rates, cover_rates_t, nx0_cover, dw, dCo
     Autoconsumo = Num_UPA_AutCons / Num_UPA
     Ind_pobreza = dhealth[4, 1]
  
-    IntCom = common_interes.IntCom_fun(AN, AE, Prod_usos, HabitatESi, num_Espi, IndVacOpup, x0[12], Autoconsumo, Ind_pobreza, dci)
+    IntCom, sum_pyg = common_interes.IntCom_fun(AN, AE, Prod_usos, HabitatESi, num_Espi, IndVacOpup, x0[12], Autoconsumo, Ind_pobreza, dci)
     # print(IntCom)
     
-    ColEA, EnfInt, TranConsConfColAct, TranConsConfCAgua, mca, mcf, mcb, ProgIyP = SF_auxiliary.SF_auxiliary_variables(x0, dsf, IntCom)
+    ColEA, EnfInt, TranConsConfColAct, TranConsConfCAgua, mca, mcf, mcb, ProgIyP = SF_auxiliary.SF_auxiliary_variables(x0, dsf, IntCom, x_0)
      
     # 1- soil covers module
     for k in range(nx0_cover):
@@ -56,7 +56,7 @@ def differential_equations(x0, t, cover_rates, cover_rates_t, nx0_cover, dw, dCo
     # 2- water resource module
     
     PAE = ((x0[13]) + (x0[14]) + (x0[15]))
-    Infil, FS, Perco, DH = WaterFlows.water_inputs_outputs(x0, dw, mca, PAE)
+    Infil, FS, Perco, DH = WaterFlows.water_inputs_outputs(x0, dw, mca, PAE, AE)
 
     derivatives[k + 1] = Infil - DH - FS - Perco
     

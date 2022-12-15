@@ -1,7 +1,7 @@
 import math
 import numpy as np
 
-def SF_auxiliary_variables(x0, dsf, IntCom):
+def SF_auxiliary_variables(x0, dsf, IntCom, x_0):
     pmPerProgParCom = dsf[4, 1]
     pPer_1ProgParCom = dsf[5, 1]
     pPer_2ProgParCom = dsf[6, 1]
@@ -15,7 +15,7 @@ def SF_auxiliary_variables(x0, dsf, IntCom):
     
     facTransConsCSA_ColAc = dsf[1, 1]
     facTransConsCSA_CuAg = dsf[2, 1]
-    PAE = sum(x0[13:16])
+    PAE = sum(x_0[13:16])
     ProgIyP = math.trunc(pPer_1ProgParCom * (1+pPer_2ProgParCom) * PAE / pmPerProgParCom)
     ColEA = IntCom * np.log((ProgIyP + 1))
     TranConsConfColAct = (facTransConsCSA_ColAc * ColEA) / 15
