@@ -1,7 +1,7 @@
 
 import math
 
-def water_inputs_outputs(x0, dw, mca, PAE): # Infiltration
+def water_inputs_outputs(x0, dw, mca, PAE, AE): # Infiltration
     Qm = dw[0,1]
     ConsIndusEner = dw[1,1]
     ConsOtros = dw[2,1]
@@ -43,7 +43,8 @@ def water_inputs_outputs(x0, dw, mca, PAE): # Infiltration
     else:
         FS = 0
         
-    Perco = tPerco * RetHs
+    # Perco = tPerco * RetHs
+    Perco = tPerco * 10 * AE
     DH_AHeter = ConsACobj[2] * x0[0]
     DH_AHomo = ConsACobj[3] * x0[1]
     DH_ABO = ConsACobj[0] * x0[2]

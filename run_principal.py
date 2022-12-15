@@ -151,6 +151,7 @@ Ind_pobreza = dhealth[4, 1]
 EnfIntefr_Cobi = np.zeros(ntime)
 ColEA = np.zeros(ntime)
 IntCom = np.zeros(ntime)
+sum_pyg = np.zeros(ntime)
 TransCSA_ColEA = np.zeros(ntime)
 TransCSA_CuiA = np.zeros(ntime)
 ProgIyP = np.zeros(ntime)
@@ -166,9 +167,9 @@ for i in range(ntime):
         IndVacOpup = 1
     else:
         IndVacOpup = 0
-    IntCom[i] = common_interes.IntCom_fun(sum(Ys[i, 2:5]), sum(Ys[i, 0:11]), Prod_usos, HabitatESi, num_Espi, IndVacOpup, Ys[i, 12], Autoconsumo, Ind_pobreza, dci)
+    IntCom[i], sum_pyg[i] = common_interes.IntCom_fun(sum(Ys[i, 2:5]), sum(Ys[i, 0:11]), Prod_usos, HabitatESi, num_Espi, IndVacOpup, Ys[i, 12], Autoconsumo, Ind_pobreza, dci)
 
-    ColEA[i], EnfIntefr_Cobi[i],TransCSA_ColEA[i], TransCSA_CuiA[i], mca[i], mcf[i], mcb[i], ProgIyP[i] = SF_auxiliary.SF_auxiliary_variables(Ys[i,:], dsf, IntCom[i])
+    ColEA[i], EnfIntefr_Cobi[i],TransCSA_ColEA[i], TransCSA_CuiA[i], mca[i], mcf[i], mcb[i], ProgIyP[i] = SF_auxiliary.SF_auxiliary_variables(Ys[i,:], dsf, IntCom[i], x_0)
     ICAiv_original[i,:] = ICAi
     ICAmv_original[i] = ICAm
     ICAmv_modificada[i] = (ICAm / 4) * (1 + 2 * ICAm ** -(0.5+mca[i]))
@@ -181,7 +182,7 @@ data_AirQ = pd.read_excel (parametersPath, sheet_name ='Air_quality')
 dairq = pd.DataFrame(data_AirQ, columns= ['ICA PM10', 'ICA PM 2,5', 'ICA CO', 'ICA SO2', 'ICA NO2', 'ICA O3'])
 dairq = dairq.to_numpy()
 ICAairi = np.nanmean(dairq, axis=0)
-ICAairm = np.nanmean(ICAairi)
+ICAairm = 1-np.nanmean(ICAairi) / 500
 ICAairiv = np.transpose([[None for ICAairi in range(ntime)] for ICAairi in range(len(ICAairi))])
 ICAairmv = [None for ICAairm in range(ntime)]
 
@@ -345,7 +346,9 @@ for i in range(int(ntime)):
     else:
         AporteDivInclus[i] = 1
    
-    IDivAPro[i] = (((AporteDivEmpren[i] + AporteDivInclus[i]) / 2) * (sum(VacOCobj * (VacOCobj - 1 )) + sum(VacOAci * (VacOAci - 1))) / ((sum(VacOCobj) + sum(VacOAci)) * ((sum(VacOCobj) + sum(VacOAci)) - 1))) ** (1 - DivSisAlimLocal[i])
+    IDivAPro[i] = (((AporteDivEmpren[i] + AporteDivInclus[i]) / 2) 
+                   * (1 - (sum(VacOCobj * (VacOCobj - 1 )) + sum(VacOAci * (VacOAci - 1))) 
+                   / ((sum(VacOCobj) + sum(VacOAci)) * ((sum(VacOCobj) + sum(VacOAci)) - 1)))) ** (1 - DivSisAlimLocal[i])
 
     if VacO[i] - PoETEA[i] >= 0:
         PoOcu[i] = 1
@@ -382,6 +385,7 @@ name_IntCom = np.array(['Interés Común'])
 name_TransCSA_ColEA = np.array(['Transformación de conflictos por colaboración entre actores'])
 name_TransCSA_CuiA = np.array(['Transformación de conflictos por cuidado del agua'])
 name_ProgIyP = np.array(['Programas de información y participación comunitaria'])
+name_sum_pyf = np.array(['Diversidad de programas y prácticas de cuidado'])
 # 13. Health indices
 name_InProvAliCobi = np.array(['Indice de provisión de alimento por coberturas'])
 
@@ -421,7 +425,8 @@ names = np.concatenate((name_year,
                         name_IntCom,
                         name_TransCSA_ColEA,
                         name_TransCSA_CuiA,
-                        name_ProgIyP
+                        name_ProgIyP,
+                        name_sum_pyf
                         ))
 output = np.c_[time, 
                Ys[:,0],
@@ -476,7 +481,8 @@ output = np.c_[time,
                IntCom,
                TransCSA_ColEA,
                TransCSA_CuiA,
-               ProgIyP
+               ProgIyP,
+               sum_pyg
                ]
 model_time_series = pd.DataFrame(output, columns=names)
 
