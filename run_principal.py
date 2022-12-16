@@ -24,15 +24,18 @@ workspace = ''
 conditionsPath = r'./condiciones_iniciales/'
 parametersFile = 'parameters.xlsx'
 result_name = 'model_time_series.csv'
+decimalSeparator='coma'
 
 if sys.argv[1:]:
-    opts = getopt.getopt(sys.argv[1:], "o:w:")[0]
+    opts = getopt.getopt(sys.argv[1:], "o:w:d:")[0]
 
     for opt, arg in opts:
         if (opt == '-o'):
             outputName = arg
         if (opt == '-w'):
             workspace = arg
+        if (opt == '-d'):
+            decimalSeparator = arg
 
     parametersFile = f'{workspace}_parameters.xlsx'
     result_name = f'{workspace}_{outputName}'
@@ -484,11 +487,14 @@ output = np.c_[time,
                ProgIyP,
                sum_pyg
                ]
-model_time_series = pd.DataFrame(output, columns=names)
+model_time_series = pd.DataFrame(output, columns=names).apply(pd.to_numeric)
 
-model_time_series.to_csv(f'./outputs/{result_name}', float_format='%.2f', index=False,  encoding='utf-8-sig')
+if decimalSeparator=="punto":
+    separator = '.'
+else:
+    separator = ','
 
-# model_time_series.to_csv(f'./outputs/{result_name}', float_format='%.2f', sep=';', decimal=',', encoding='utf-8-sig')
+model_time_series.to_csv(f'./outputs/{result_name}', sep=';', decimal=separator, encoding='utf-8-sig')
 
 
 # OPTIONAL - PLOT TIME SERIES
