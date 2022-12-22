@@ -308,9 +308,10 @@ name_DivSisAlimLocal = np.array(['Diversidad del sistema alimentario local'])
 name_Con_Acces = np.array(['Indice de condiciones de acceso'])
 
 peso_Cobi = np.array([50, 30, 35, 40, 50, 25, 5, 15, 0, 40, 10])
+print(sum(peso_Cobi))
 
 for i in range(int(ntime)):
-    InProvAliCobi[i] = (1 / sum(Ys[i, 0:11])) * (sum((peso_Cobi * Ys[i, 0:11]) )/ sum(peso_Cobi))
+    InProvAliCobi[i] = sum((peso_Cobi * Ys[i, 0:11]) ) / (max(peso_Cobi) * sum(Ys[i, 0:11]))
     
     HealthIndex[i], DivSisAlimLocal[i], Con_Acces[i] = Health_auxiliary.health_index(time[0], time[i], time, dhealth, FunDiv[i], len(dfd_names_col)-1, ICAmv_modificada[i],
                                                    np.mean(NoiseAttenuationMatriz[i,20:22]),  ICAairmv[i], InProvAliCobi[i])
@@ -372,10 +373,18 @@ Ys[:,17] = (Ys[:,17])
 PAE = (Ys[:,13]) + (Ys[:,14]) + (Ys[:,15])
 name_PAE = np.array(['Población total'])
 # 10. Water consumption
-ConsHDomes = dw[4,1] * PAE
-name_ConsHDomes = np.array(['Consumo de agua doméstico'])
-EsC = dw[0,1] + dw[1,1] + ConsHDomes + dw[2,1]
-name_EsC = np.array(['Escorrentía'])
+ConsHDomes_con = dw[3,1] * PAE * (1-(mca ** 4) / 3)
+name_ConsHDomes_con = np.array(['Consumo de agua doméstico con cuidado del agua'])
+ConsHDomes_sin = dw[3,1] * PAE
+name_ConsHDomes_sin = np.array(['Consumo de agua doméstico sin cuidado del agua'])
+ConsIndusEner = dw[0,1]
+ConsOtros = dw[1,1]
+OHTD = dw[22,1]
+Qm_con = OHTD - (ConsIndusEner + ConsHDomes_con + ConsOtros)
+name_Qm_con = np.array(['Caudal medio de salida con cuidado del agua'])
+Qm_sin = OHTD - (ConsIndusEner + ConsHDomes_sin + ConsOtros)
+name_Qm_sin = np.array(['Caudal medio de salida sin cuidado del agua'])
+
 # 11. Productive activities indices
 name_VacOcup = np.array(['Vacantes de ocupación'])
 name_AporEmpren = np.array(['Aporte a la diversidad de actividades productivas desde el fortalecemiento de emprendimiento'])
@@ -389,6 +398,10 @@ name_TransCSA_ColEA = np.array(['Transformación de conflictos por colaboración
 name_TransCSA_CuiA = np.array(['Transformación de conflictos por cuidado del agua'])
 name_ProgIyP = np.array(['Programas de información y participación comunitaria'])
 name_sum_pyf = np.array(['Diversidad de programas y prácticas de cuidado'])
+
+name_mca = np.array(['Indicador de cuidado del agua'])
+name_mcf = np.array(['Indicador de cuidado de la fauna'])
+name_mcb = np.array(['Indicador de cuidado del bosque'])
 # 13. Health indices
 name_InProvAliCobi = np.array(['Indice de provisión de alimento por coberturas'])
 
@@ -402,8 +415,10 @@ names = np.concatenate((name_year,
 #--------------------------------------------------------------------   
                         name_PAE,
                         name_ConectBOn,
-                        name_ConsHDomes,
-                        name_EsC,
+                        name_ConsHDomes_con,
+                        name_ConsHDomes_sin,
+                        name_Qm_con,
+                        name_Qm_sin,
                         name_WQ, 
                         name_AirQ, 
                         name_NoiseAte, 
@@ -429,7 +444,10 @@ names = np.concatenate((name_year,
                         name_TransCSA_ColEA,
                         name_TransCSA_CuiA,
                         name_ProgIyP,
-                        name_sum_pyf
+                        name_sum_pyf,
+                        name_mca,
+                        name_mcf,
+                        name_mcb
                         ))
 output = np.c_[time, 
                Ys[:,0],
@@ -455,8 +473,10 @@ output = np.c_[time,
 #----------------------------------------------------------------------------------------
                np.trunc(PAE),
                ConectBOn,
-               ConsHDomes,
-               EsC,
+               ConsHDomes_con,
+               ConsHDomes_sin,
+               Qm_con,
+               Qm_sin,
                ICAiv_original,
                ICAmv_original,
                ICAmv_modificada,
@@ -485,7 +505,10 @@ output = np.c_[time,
                TransCSA_ColEA,
                TransCSA_CuiA,
                ProgIyP,
-               sum_pyg
+               sum_pyg,
+               mca,
+               mcf,
+               mcb
                ]
 model_time_series = pd.DataFrame(output, columns=names).apply(pd.to_numeric)
 

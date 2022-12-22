@@ -30,5 +30,5 @@ def SF_auxiliary_variables(x0, dsf, IntCom, x_0):
     mcf = EnfInt ** (1-pCfauna)
     mcb = EnfInt ** (1-pCbosque)
     
-    TranConsConfCAgua = (facTransConsCSA_CuAg * ColEA) / 2
+    TranConsConfCAgua = (mca * facTransConsCSA_CuAg) / 2
     return ColEA, EnfInt, TranConsConfColAct, TranConsConfCAgua, mca, mcf, mcb, ProgIyP
