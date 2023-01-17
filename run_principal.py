@@ -404,6 +404,15 @@ name_mcf = np.array(['Indicador de cuidado de la fauna'])
 name_mcb = np.array(['Indicador de cuidado del bosque'])
 # 13. Health indices
 name_InProvAliCobi = np.array(['Indice de provisión de alimento por coberturas'])
+# 14. transformation rates
+transformations = np.transpose([[None for x0_cover in range(ntime)] for x0_cover in range(len(x0_cover))])
+cover = np.transpose(Ys[:,0:11])
+for i in range(int(ntime)):
+    for k in range(nx0_cover):
+        tCobiCobj = cover_rates[k][:]
+        tCobjCobi = cover_rates_t[:][k]
+        transformations[i][k] = sum(tCobjCobi * cover[:, i]) - sum(tCobiCobj * cover[k, i])
+name_trnsf = ['Velocidad de cambio ' + sub for sub in name_cover]
 
 # Exporting time series as a .csv file
 names = np.concatenate((name_year, 
@@ -447,7 +456,8 @@ names = np.concatenate((name_year,
                         name_sum_pyf,
                         name_mca,
                         name_mcf,
-                        name_mcb
+                        name_mcb,
+                        name_trnsf
                         ))
 output = np.c_[time, 
                Ys[:,0],
@@ -508,7 +518,8 @@ output = np.c_[time,
                sum_pyg,
                mca,
                mcf,
-               mcb
+               mcb,
+               transformations
                ]
 model_time_series = pd.DataFrame(output, columns=names).apply(pd.to_numeric)
 
