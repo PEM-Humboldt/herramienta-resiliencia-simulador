@@ -232,7 +232,7 @@ for i in range(ntime):
     NoiseAttenuationMatriz[i,21] = np.nanmean(NoiseAttenuationMatriz[i,10:20])
    
 # 5. Potential habitat availability
-HumHa = 0.3
+# HumHa = 0.3
 BO = Ys[:, 2] # forest
 ConectBO = (2/3) ** Ys[:, 12] # Conectivity
 for i in range(ntime):
@@ -259,11 +259,12 @@ for i in range(ntime):
         HabES_i = np.vstack([HabES_i, HabitatESi])
         IperES_i = np.vstack([IperES_i, PersistenceESi])
         ExistenceEs_i = np.vstack([ExistenceEs_i, ExistenceESi])
-    if BO[i] <= HumHa * BO[0]:
-        S[i] = 0
-    else:
-        S[i] = np.count_nonzero(ExistenceEs_i[i, :] == 1)
-fd_matriz = arrfd[0:n_species,1:n_species+1]
+    # if BO[i] <= HumHa * BO[0]:
+    #     S[i] = 0
+    # else:
+    #     S[i] = np.count_nonzero(ExistenceEs_i[i, :] == 1)
+    S[i] = np.count_nonzero(ExistenceEs_i[i, :] == 1)
+fd_matriz = arrfd[0:n_species,1:len(dfd_names_col)+1]
 ones_0 = sum(fd_matriz)
 ones_i = np.zeros((int(ntime), len(ones_0)))
 for i in range(int(ntime)):
@@ -271,10 +272,10 @@ for i in range(int(ntime)):
     fd_matriz[posi, :] = 0
     ones_i[i, :] = sum(fd_matriz)
     nonzeroind = np.nonzero( ones_i[i, :])[0]
-    if BO[i] <= HumHa * BO[0]:
-       FunDiv[i] = 0
-    else:
-        FunDiv[i] = len(fd_matriz[0, :]) - (len(fd_matriz[0, :]) - len(nonzeroind))
+    # if BO[i] <= HumHa * BO[0]:
+    #    FunDiv[i] = 0
+    # else:
+    FunDiv[i] = len(fd_matriz[0, :]) - (len(fd_matriz[0, :]) - len(nonzeroind))
 name_S = np.array(['Riqueza de especies'])
 name_FD = np.array(['Diversidad Funcional'])
 # Species per Function
@@ -524,7 +525,7 @@ output = np.c_[time,
 model_time_series = pd.DataFrame(output, columns=names).apply(pd.to_numeric)
 
 if decimalSeparator=="punto":
-    separator = '.'
+        separator = '.'
 else:
     separator = ','
 

@@ -22,6 +22,7 @@ def habitat_area(dh, BO, BO0, ConectBO, mcf, mcb, workspace):
     species_names = layers[["name"]].values.ravel()
     IdoHaES_i = layers[["area_hc"]].values.ravel()
     percentage_Ha_ES_i = layers[["umbral"]].values.ravel() / 100
+    # percentage_Ha_ES_i = -0.4 * np.ones(len(IdoHaES_i))
 
     error_Es_i = [None for x in range(len(IdoHaES_i))]
     for i in range(len(IdoHaES_i)):
