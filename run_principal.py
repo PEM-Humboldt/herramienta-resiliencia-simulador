@@ -43,7 +43,37 @@ if sys.argv[1:]:
 parametersPath = conditionsPath + parametersFile
 
 # initial conditions for covers (Cobi)
-data0_cover = sorted(initial_cond_cover.initial_cover(workspace))
+data1_cover = sorted(initial_cond_cover.initial_cover(workspace))
+data1_cover_name = [i for i,j in data1_cover]
+data1_cover_value = [j for i,j in data1_cover]
+num_cover = len(data1_cover_name)
+
+if num_cover != 11:
+    unique_values = ['Agropecuario heterogeneo',
+                    'Agrícola homogeneo',
+                    'Bosques',
+                    'Herbazales y arbustales',
+                    'Humedales',
+                    'Pasturas homogeneas',
+                    'Suelos desprovistos de vegetación (natural)',
+                    'Urbano - urbanizado',
+                    'Usos extractivos',
+                    'Vegetación secundaria o seminatural',
+                    'Áreas degradadas']
+    data0_cover = [[None for unique_values in range(2)] for unique_values in range(11)]
+    
+    for i in range(11):
+        if (unique_values[i] in data1_cover_name[:]):
+            idx = data1_cover_name[:].index(unique_values[i])
+            data0_cover[i][0] = data1_cover_name[idx]
+            data0_cover[i][1] = data1_cover_value[idx]
+        else:
+            data0_cover[i][0] = unique_values[i]
+            data0_cover[i][1] = 0
+else:
+    data0_cover = data1_cover
+        
+
 x0_cover = [row[1] for row in data0_cover]
 name_cover = [row[0] for row in data0_cover]
 nc = len(x0_cover)
@@ -277,7 +307,7 @@ for i in range(int(ntime)):
     # else:
     FunDiv[i] = len(fd_matriz[0, :]) - (len(fd_matriz[0, :]) - len(nonzeroind))
 name_S = np.array(['Riqueza de especies'])
-name_FD = np.array(['Diversidad Funcional'])
+name_FD = np.array(['Diversidad de funciones ecológicas'])
 # Species per Function
 name_EspixFun = {}
 for i in range(len(dfd_names_col)):
