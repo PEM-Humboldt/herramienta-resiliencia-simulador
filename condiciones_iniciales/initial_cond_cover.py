@@ -1,4 +1,5 @@
 import pandas as pd
+import numpy as np
 from sqlalchemy import create_engine
 from dotenv import load_dotenv
 from db_functions import db_connect, set_query
@@ -18,24 +19,38 @@ def initial_cover(workspace):
 
     # Create a copy of the layer for possible modifications
     layers_new = layers.rename(columns={'codigo_clc':'codigo_clc_new'})
-
+    
     # Determines the number of existing categories in the shape layer
-    column_values = layers_new[["cobertura"]].values.ravel()
+    column_values = layers_new[["cobertura", "codigo_clc_new"]].values
+    matrix_data= np.vstack({tuple(e) for e in column_values}) # 11 x 2
+    n = len(matrix_data[:,0]) # 11
+    
+    sum_cover = [[None for unique_values in range(3)] for unique_values in range(n)] # 11 x 3
 
-    # number of different covers
-    unique_values =  pd.unique(column_values)
-    n = len(unique_values)
-
-
-    sum_cover = [[None for unique_values in range(2)] for unique_values in range(n)]
-
-    # Creates a list with the category name and sum of area
-    for i in range(len(unique_values)):
-        idx = layers_new.index[layers_new['cobertura'] == unique_values[i]].tolist()
-        sum_cover[i][0] = unique_values[i]
+    # Creates a list with the category name, sum of area and cod of cover
+    for i in range(n):
+        idx = layers_new.index[layers_new['cobertura'] == matrix_data[i,0]].tolist()
+        sum_cover[i][0] = matrix_data[i,0]
         sum_cover[i][1] = sum(layers_new.iloc[idx]["area_ha"])
-
+        sum_cover[i][2] = matrix_data[i, 1]
     return sum_cover
+
+    # # Determines the number of existing categories in the shape layer
+    # column_values = layers_new[["cobertura", "codigo_clc_new"]].values
+    # matrix_data= np.vstack({tuple(e) for e in column_values}) # 11 x 2
+    # unique_values = sorted(pd.unique(matrix_data[:,0]))
+    # unique_cod = [232, 222, 311, 322, 411, 231, 331, 121, 131, 313, 334]
+    # n = len(unique_values) # 11
+    
+    # sum_cover = [[None for unique_values in range(3)] for unique_values in range(n)] # 11 x 3
+
+    # # Creates a list with the category name, sum of area and cod of cover
+    # for i in range(n):
+    #     idx = layers_new.index[layers_new['cobertura'] == unique_values[i]].tolist()
+    #     sum_cover[i][0] = unique_values[i]
+    #     sum_cover[i][1] = sum(layers_new.iloc[idx]["area_ha"])
+    #     sum_cover[i][2] = unique_cod[i]
+    # return sum_cover
 
     # # define el nivel a usar en la agrupación de capas ¿debería ser menor o igual a min_level?
     # # num_digits = 2
