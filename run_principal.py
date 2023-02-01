@@ -43,13 +43,36 @@ if sys.argv[1:]:
 parametersPath = conditionsPath + parametersFile
 
 # initial conditions for covers (Cobi)
-data1_cover = sorted(initial_cond_cover.initial_cover(workspace))
+data_cover = sorted(initial_cond_cover.initial_cover(workspace))
+
+def f(l):
+    l2 = []
+    for i in data_cover:
+        for j in range(len(i)-2):
+             l2.append((i[j], i[-2]))
+    return l2
+
+def g(l):
+    l2 = []
+    for i in data_cover:
+        for j in range(len(i)-2):
+             l2.append((i[-1]))
+    return l2
+
+data1_cover = f(data_cover)
+data1_cover_cod = g(data_cover)
 data1_cover_name = [i for i,j in data1_cover]
 data1_cover_value = [j for i,j in data1_cover]
+
+# data1_cover_cod = data1_cover_cod[1:10]
+# data1_cover_name = data1_cover_name[1:10]
+# data1_cover_value = data1_cover_value[1:10]
+
 num_cover = len(data1_cover_name)
 
 if num_cover != 11:
-    unique_values = ['Agropecuario heterogeneo',
+    unique_values_cod = [232, 222, 311, 322, 411, 231, 331, 121, 131, 313, 334]
+    unique_values_cover = ['Agropecuario heterogeneo',
                     'Agrícola homogeneo',
                     'Bosques',
                     'Herbazales y arbustales',
@@ -60,15 +83,15 @@ if num_cover != 11:
                     'Usos extractivos',
                     'Vegetación secundaria o seminatural',
                     'Áreas degradadas']
-    data0_cover = [[None for unique_values in range(2)] for unique_values in range(11)]
+    data0_cover = [[None for unique_values_cod in range(2)] for unique_values_cod in range(11)]
     
     for i in range(11):
-        if (unique_values[i] in data1_cover_name[:]):
-            idx = data1_cover_name[:].index(unique_values[i])
+        if (unique_values_cod[i] in data1_cover_cod[:]):
+            idx = data1_cover_cod[:].index(unique_values_cod[i])
             data0_cover[i][0] = data1_cover_name[idx]
             data0_cover[i][1] = data1_cover_value[idx]
         else:
-            data0_cover[i][0] = unique_values[i]
+            data0_cover[i][0] = unique_values_cover[i]
             data0_cover[i][1] = 0
 else:
     data0_cover = data1_cover
@@ -565,7 +588,7 @@ model_time_series.to_csv(f'./outputs/{result_name}', sep=';', decimal=separator,
 # OPTIONAL - PLOT TIME SERIES
 # plt.figure(1)
 # for i in range(nx0_cover):
-#     plt.plot(time, Ys[:, i], label=names[i+1])
+#     plt.plot(time, Ys[:, i], label = name_cover[i])
 #     plt.scatter(time, Ys[:, i])
 # plt.plot(time, Yt, label='Área total')
 # plt.legend(loc='best')
@@ -574,70 +597,81 @@ model_time_series.to_csv(f'./outputs/{result_name}', sep=';', decimal=separator,
 # plt.show()
 
 # plt.figure(2)
-# for i in range(nx0_water):
-#     plt.plot(time, Ys[:, nx0_cover + i], label=names[nx0_cover + i+1])
-#     plt.scatter(time, Ys[:, nx0_cover + i])
+# plt.plot(time, Ys[:,11], label = name_water[0])
+# plt.scatter(time, Ys[:,11])
 # plt.legend(loc='best')
 # plt.xlabel('tiempo')
 # plt.grid()
 # plt.show()
 
-# plt.figure(3)
-# plt.plot(time, WaterQualityIndex, label = name_WQ[0])
-# plt.scatter(time, WaterQualityIndex)
-# plt.legend(loc='best')
+# fig, axes = plt.subplots(2)
+# axes[0].plot(time, Ys[:,12], label = name_ConectBO[0])
+# axes[0].scatter(time, Ys[:,12])
+# axes[0].legend(loc='best')
+# axes[1].plot(time, ConectBOn, label = name_ConectBOn[0])
+# axes[1].scatter(time, ConectBOn)
+# axes[1].legend(loc='best')
 # plt.xlabel('tiempo')
-# plt.grid()
 # plt.show()
 
 # plt.figure(4)
-# plt.plot(time, Ys[:,13], label = name_population[0])
-# plt.scatter(time, Ys[:,13])
+# for i in range(len(name_population)):
+#     plt.plot(time, Ys[:,13+i], label = name_population[i])
+#     plt.scatter(time, Ys[:,13+i])
+# plt.plot(time, np.trunc(PoETEA), label = name_PoETEA[0])
+# plt.scatter(time, np.trunc(PoETEA))
 # plt.legend(loc='best')
 # plt.xlabel('tiempo')
 # plt.grid()
 # plt.show()
 
 # plt.figure(5)
-# for i in range(nx0_water):
-#     plt.plot(time, Ys[:, 14 + i], label=name_SF_CSA[i])
-#     plt.scatter(time, Ys[:, 14 + i])
+# for i in range(len(name_SF_CSA)):
+#     plt.plot(time, Ys[:,18+i], label = name_SF_CSA[i])
+#     plt.scatter(time, Ys[:,18+i])
 # plt.legend(loc='best')
 # plt.xlabel('tiempo')
 # plt.grid()
 # plt.show()
 
 # plt.figure(6)
-# for i in range(n_species):
-#     plt.plot(time, HabES_i[:, i], label = name_PHaA[i])
-#     plt.scatter(time, HabES_i[:, i])
+# plt.plot(time, ConsHDomes_con, label = name_ConsHDomes_con[0])
+# plt.scatter(time, ConsHDomes_con)
+# plt.plot(time, ConsHDomes_sin, label = name_ConsHDomes_sin[0])
+# plt.scatter(time, ConsHDomes_sin)
 # plt.legend(loc='best')
 # plt.xlabel('tiempo')
-# # plt.title('Hábitat')
 # plt.grid()
 # plt.show()
 
 # plt.figure(7)
 # for i in range(n_species):
-#     plt.plot(time, IperES_i[:, i], label = name_PperES[i])
-#     plt.scatter(time, IperES_i[:, i])
+#     plt.plot(time, HabES_i[:, i], label = name_PHaA[i])
+#     plt.scatter(time, HabES_i[:, i])
 # plt.legend(loc='best')
 # plt.xlabel('tiempo')
-# # plt.title('Persistencia de especies')
 # plt.grid()
 # plt.show()
 
 # plt.figure(8)
 # for i in range(n_species):
-#     plt.plot(time, ExistenceEs_i[:, i], label = name_Existence[i])
-#     plt.scatter(time, ExistenceEs_i[:, i])
+#     plt.plot(time, IperES_i[:, i], label = name_PperES[i])
+#     plt.scatter(time, IperES_i[:, i])
 # plt.legend(loc='best')
 # plt.xlabel('tiempo')
-# # plt.title('Permanencia de especies')
 # plt.grid()
 # plt.show()
 
 # plt.figure(9)
+# for i in range(n_species):
+#     plt.plot(time, ExistenceEs_i[:, i], label = name_Existence[i])
+#     plt.scatter(time, ExistenceEs_i[:, i])
+# plt.legend(loc='best')
+# plt.xlabel('tiempo')
+# plt.grid()
+# plt.show()
+
+# plt.figure(10)
 # plt.plot(time, S, label = name_S[0])
 # plt.scatter(time, S)
 # plt.legend(loc='best')
@@ -645,7 +679,7 @@ model_time_series.to_csv(f'./outputs/{result_name}', sep=';', decimal=separator,
 # plt.grid()
 # plt.show()
 
-# plt.figure(10)
+# plt.figure(11)
 # plt.plot(time, FunDiv, label = name_FD[0])
 # plt.scatter(time, FunDiv)
 # plt.legend(loc='best')
@@ -653,17 +687,10 @@ model_time_series.to_csv(f'./outputs/{result_name}', sep=';', decimal=separator,
 # plt.grid()
 # plt.show()
 
-# plt.figure(11)
-# plt.plot(time, IDivAPro, label = name_IDivAPro[0])
-# plt.scatter(time, IDivAPro)
-# plt.legend(loc='best')
-# plt.xlabel('tiempo')
-# plt.grid()
-# plt.show()
-
 # plt.figure(12)
-# plt.plot(time, OandE, label = name_OandE[0])
-# plt.scatter(time, OandE)
+# for i in range(len(name_EspixFun)):
+#     plt.plot(time, ones_i[:, i], label = name_EspixFun[i])
+#     plt.scatter(time, ones_i[:, i])
 # plt.legend(loc='best')
 # plt.xlabel('tiempo')
 # plt.grid()
@@ -672,6 +699,52 @@ model_time_series.to_csv(f'./outputs/{result_name}', sep=';', decimal=separator,
 # plt.figure(13)
 # plt.plot(time, HealthIndex, label = name_Health[0])
 # plt.scatter(time, HealthIndex)
+# plt.plot(time, Con_Acces, label = name_Con_Acces[0])
+# plt.scatter(time, Con_Acces)
+# plt.plot(time, DivSisAlimLocal, label = name_DivSisAlimLocal[0])
+# plt.scatter(time, DivSisAlimLocal)
+# plt.plot(time, InProvAliCobi, label = name_InProvAliCobi[0])
+# plt.scatter(time, InProvAliCobi)
+# plt.legend(loc='best')
+# plt.xlabel('tiempo')
+# plt.grid()
+# plt.show()
+
+# plt.figure(14)
+# plt.plot(time, IDivAPro, label = name_IDivAPro[0])
+# plt.scatter(time, IDivAPro)
+# plt.legend(loc='best')
+# plt.xlabel('tiempo')
+# plt.grid()
+# plt.show()
+
+# plt.figure(15)
+# plt.plot(time, np.trunc(VacO), label = name_VacOcup[0])
+# plt.scatter(time, np.trunc(VacO))
+# plt.legend(loc='best')
+# plt.xlabel('tiempo')
+# plt.grid()
+# plt.show()
+
+# plt.figure(16)
+# fig, axes = plt.subplots(3)
+# axes[0].plot(time, EnfIntefr_Cobi, label = name_EnfInte[0])
+# axes[0].scatter(time, EnfIntefr_Cobi)
+# axes[0].legend(loc='best')
+# axes[1].plot(time, ColEA, label = name_ColAct[0])
+# axes[1].scatter(time, ColEA)
+# axes[1].legend(loc='best')
+# axes[2].plot(time, IntCom, label = name_IntCom[0])
+# axes[2].scatter(time, IntCom)
+# axes[2].legend(loc='best')
+# plt.xlabel('tiempo')
+# plt.show()
+
+# plt.figure(17)
+# plt.plot(time, Qm_con, label = name_Qm_con[0])
+# plt.scatter(time, Qm_con)
+# plt.plot(time, Qm_sin, label = name_Qm_sin[0])
+# plt.scatter(time, Qm_sin)
 # plt.legend(loc='best')
 # plt.xlabel('tiempo')
 # plt.grid()
