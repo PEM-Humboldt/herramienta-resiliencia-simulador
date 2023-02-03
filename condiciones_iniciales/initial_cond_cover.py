@@ -19,7 +19,7 @@ def initial_cover(workspace):
 
     # Create a copy of the layer for possible modifications
     layers_new = layers.rename(columns={'codigo_clc':'codigo_clc_new'})
-    
+#-------------------------------------------------------------------------------------------------------------
     # Determines the number of existing categories in the shape layer
     column_values = layers_new[["cobertura", "codigo_clc_new"]].values
     matrix_data= np.vstack({tuple(e) for e in column_values}) # 11 x 2
@@ -34,7 +34,7 @@ def initial_cover(workspace):
         sum_cover[i][1] = sum(layers_new.iloc[idx]["area_ha"])
         sum_cover[i][2] = matrix_data[i, 1]
     return sum_cover
-
+#-------------------------------------------------------------------------------------------------------------
     # # Determines the number of existing categories in the shape layer
     # column_values = layers_new[["cobertura", "codigo_clc_new"]].values
     # matrix_data= np.vstack({tuple(e) for e in column_values}) # 11 x 2
@@ -51,6 +51,7 @@ def initial_cover(workspace):
     #     sum_cover[i][1] = sum(layers_new.iloc[idx]["area_ha"])
     #     sum_cover[i][2] = unique_cod[i]
     # return sum_cover
+#----------------------------------------------------------------------------------------------------------------
 
     # # define el nivel a usar en la agrupación de capas ¿debería ser menor o igual a min_level?
     # # num_digits = 2

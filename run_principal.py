@@ -15,7 +15,7 @@ from scipy.integrate import odeint
 import numpy as np
 import matplotlib.pyplot as plt
 import pandas as pd
-import math
+import resilience_indicators
 
 import sys
 import getopt
@@ -64,14 +64,14 @@ data1_cover_cod = g(data_cover)
 data1_cover_name = [i for i,j in data1_cover]
 data1_cover_value = [j for i,j in data1_cover]
 
-# data1_cover_cod = data1_cover_cod[1:10]
-# data1_cover_name = data1_cover_name[1:10]
-# data1_cover_value = data1_cover_value[1:10]
+data1_cover_cod = data1_cover_cod[0:11]
+data1_cover_name = data1_cover_name[0:11]
+data1_cover_value = data1_cover_value[0:11]
 
 num_cover = len(data1_cover_name)
 
 if num_cover != 11:
-    unique_values_cod = [232, 222, 311, 322, 411, 231, 331, 121, 131, 313, 334]
+    unique_values_cod = ['232', '222', '311', '322', '411', '231', '331', '121', '131', '313', '334']
     unique_values_cover = ['Agropecuario heterogeneo',
                     'Agrícola homogeneo',
                     'Bosques',
@@ -510,8 +510,8 @@ names = np.concatenate((name_year,
                         name_sum_pyf,
                         name_mca,
                         name_mcf,
-                        name_mcb,
-                        name_trnsf
+                        name_mcb
+                        # name_trnsf
                         ))
 output = np.c_[time, 
                Ys[:,0],
@@ -572,10 +572,12 @@ output = np.c_[time,
                sum_pyg,
                mca,
                mcf,
-               mcb,
-               transformations
+               mcb
+            #    transformations
                ]
 model_time_series = pd.DataFrame(output, columns=names).apply(pd.to_numeric)
+
+# indicators = resilience_indicators.slope_time_series(model_time_series, names)
 
 if decimalSeparator=="punto":
         separator = '.'
