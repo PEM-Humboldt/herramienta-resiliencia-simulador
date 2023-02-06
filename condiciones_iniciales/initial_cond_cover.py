@@ -39,7 +39,7 @@ def initial_cover(workspace):
     # column_values = layers_new[["cobertura", "codigo_clc_new"]].values
     # matrix_data= np.vstack({tuple(e) for e in column_values}) # 11 x 2
     # unique_values = sorted(pd.unique(matrix_data[:,0]))
-    # unique_cod = [232, 222, 311, 322, 411, 231, 331, 121, 131, 313, 334]
+    # unique_cod = ['232', '222', '311', '322', '411', '231', '331', '121', '131', '313', '334']
     # n = len(unique_values) # 11
     
     # sum_cover = [[None for unique_values in range(3)] for unique_values in range(n)] # 11 x 3
