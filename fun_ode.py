@@ -57,8 +57,10 @@ def differential_equations(x0, t, cover_rates, cover_rates_t, nx0_cover, dw, dCo
     
     PAE = ((x0[13]) + (x0[14]) + (x0[15]))
     Infil, FS, Perco, DH = WaterFlows.water_inputs_outputs(x0, dw, mca, PAE, AE)
-
-    derivatives[k + 1] = Infil - DH - FS - Perco
+    if x0[11] < 0:
+        derivatives[k + 1] = 0
+    else:
+        derivatives[k + 1] = Infil - DH - FS - Perco
     
     # 3- habitat and diversity of ecological functions
     Conect_ano1 = dConect[0,1]

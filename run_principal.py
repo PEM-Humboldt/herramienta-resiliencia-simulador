@@ -64,15 +64,13 @@ data1_cover_cod = g(data_cover)
 data1_cover_name = [i for i,j in data1_cover]
 data1_cover_value = [j for i,j in data1_cover]
 
-data1_cover_cod = data1_cover_cod[0:11]
-data1_cover_name = data1_cover_name[0:11]
-data1_cover_value = data1_cover_value[0:11]
+# data1_cover_cod = data1_cover_cod[0:11]
+# data1_cover_name = data1_cover_name[0:11]
+# data1_cover_value = data1_cover_value[0:11]
 
 num_cover = len(data1_cover_name)
-
-if num_cover != 11:
-    unique_values_cod = ['232', '222', '311', '322', '411', '231', '331', '121', '131', '313', '334']
-    unique_values_cover = ['Agropecuario heterogeneo',
+unique_values_cod = ['232', '222', '311', '322', '411', '231', '331', '121', '131', '313', '334']
+unique_values_cover = ['Agropecuario heterogeneo',
                     'Agrícola homogeneo',
                     'Bosques',
                     'Herbazales y arbustales',
@@ -83,6 +81,7 @@ if num_cover != 11:
                     'Usos extractivos',
                     'Vegetación secundaria o seminatural',
                     'Áreas degradadas']
+if num_cover != 11:
     data0_cover = [[None for unique_values_cod in range(2)] for unique_values_cod in range(11)]
     
     for i in range(11):
@@ -94,7 +93,11 @@ if num_cover != 11:
             data0_cover[i][0] = unique_values_cover[i]
             data0_cover[i][1] = 0
 else:
-    data0_cover = data1_cover
+    data0_cover = [[None for unique_values_cod in range(2)] for unique_values_cod in range(11)]
+    for i in range(11):
+        idx = data1_cover_cod[:].index(unique_values_cod[i])
+        data0_cover[i][0] = data1_cover_name[idx]
+        data0_cover[i][1] = data1_cover_value[idx]
         
 
 x0_cover = [row[1] for row in data0_cover]
@@ -185,7 +188,9 @@ Yt = np.sum(Ys[:, 0:nx0_cover],axis=1) # axis=1 --> add rows, axis=0 --> add col
 mca = np.zeros(ntime)
 mcf = np.zeros(ntime)
 mcb = np.zeros(ntime)
-name_WQ = np.array(['ICA OD', 'ICA SST', 'ICA DQO', 'ICA CE', 'ICA pH', 'ICA agua promedio regional', 'ICA agua promedio regional con cuidado del agua'])
+name_WQ = np.array(['ICA OD', 'ICA SST', 'ICA DQO', 'ICA CE', 'ICA pH'])
+name_mv_original = np.array(['ICA agua promedio regional'])
+name_mv_modificada = np.array(['ICA agua promedio regional con cuidado del agua'])
 data_WQ = pd.read_excel (parametersPath, sheet_name='wate_quality')
 dwq = pd.DataFrame(data_WQ, columns= ['ICA OD', 'ICA SST', 'ICA DQO', 'ICA CE', 'ICA pH'])
 dwq = dwq.to_numpy()
@@ -233,7 +238,8 @@ for i in range(ntime):
 ## Abiotic variables
 
 # 3. Air quality
-name_AirQ = np.array(['ICA PM10', 'ICA PM 2.5', 'ICA CO', 'ICA SO2', 'ICA NO2', 'ICA O3','ICA aire promedio regional'])
+name_AirQ = np.array(['ICA PM10', 'ICA PM 2.5', 'ICA CO', 'ICA SO2', 'ICA NO2', 'ICA O3'])
+name_mv_AirQ = np.array(['ICA aire promedio regional'])
 data_AirQ = pd.read_excel (parametersPath, sheet_name ='Air_quality')
 dairq = pd.DataFrame(data_AirQ, columns= ['ICA PM10', 'ICA PM 2,5', 'ICA CO', 'ICA SO2', 'ICA NO2', 'ICA O3'])
 dairq = dairq.to_numpy()
@@ -256,9 +262,10 @@ name_NoiseAte = np.array(['Atenuación día Agricola', 'Atenuación día Bosque'
                       'Atenuación noche Herbazales', 'Atenuación noche Humedales',
                       'Atenuación noche Pasturas homogeneas', 'Atenuación noche Suelos desprovistos de vegetación (natural)',
                       'Atenuación noche Urbano', 'Atenuación noche Usos extractivos',
-                      'Atenuación noche Vegetación secundaria', 'Atenuación noche Áreas degradadas',
-                      'Atenuación regional día', 'Atenuación regional noche'])
-                      
+                      'Atenuación noche Vegetación secundaria', 'Atenuación noche Áreas degradadas'])
+
+name_mv_NoiseAte = np.array(['Atenuación regional día', 'Atenuación regional noche'])
+                    
 data_sound = pd.read_excel (parametersPath, sheet_name = 'Sound_pressure')
 dav = pd.DataFrame(data_sound, columns= ['Umbral día (db)',	'Umbral noche (db)',
                                          'Atenuación (db)',	'Promedio día (db)',
@@ -274,6 +281,7 @@ dav[:,4] = a4
 
 ACob = Ys[:, 0:11] 
 NoiseAttenuationMatriz = np.transpose([[None for name_NoiseAte in range(ntime)] for name_NoiseAte in range(len(name_NoiseAte))])
+NoiseAttenuationVector_mv = np.transpose([[None for name_NoiseAte in range(ntime)] for name_NoiseAte in range(2)])
 
 for i in range(ntime):
     NoiseAttenuationMatriz[i,0] = -((dav[0,3] - dav[0,0]) / dav[0,3]) + abs((((dav[0,3] - dav[0,2] * sum(ACob[i,0:2]) / sum(ACob[i,:])) - dav[0,0]) / (dav[0,3] - dav[0,2] * sum(ACob[i,0:2]) / sum(ACob[i,:])))) # agricola dia
@@ -281,8 +289,8 @@ for i in range(ntime):
     
     NoiseAttenuationMatriz[i,1:10] = -((dav[1:10,3] - dav[1:10,0]) / dav[1:10,3]) + abs((((dav[1:10,3] - dav[1:10,2] * sum(ACob[i,0:2]) / sum(ACob[i,:])) - dav[1:10,0]) / (dav[1:10,3] - dav[1:10,2] * ACob[i,2:11] / sum(ACob[i,:])))) # agricola dia
     NoiseAttenuationMatriz[i,11:20] = -((dav[1:10,4] - dav[1:10,1]) / dav[1:10,4]) + abs((((dav[1:10,4] - dav[1:10,2] * sum(ACob[i,0:2]) / sum(ACob[i,:])) - dav[1:10,1]) / (dav[1:10,4] - dav[1:10,2] * ACob[i,2:11] / sum(ACob[i,:])))) # agricola noche
-    NoiseAttenuationMatriz[i,20] = np.nanmean(NoiseAttenuationMatriz[i,0:10])
-    NoiseAttenuationMatriz[i,21] = np.nanmean(NoiseAttenuationMatriz[i,10:20])
+    NoiseAttenuationVector_mv[i,0] = np.nanmean(NoiseAttenuationMatriz[i,0:10])
+    NoiseAttenuationVector_mv[i,1] = np.nanmean(NoiseAttenuationMatriz[i,10:20])
    
 # 5. Potential habitat availability
 # HumHa = 0.3
@@ -317,26 +325,40 @@ for i in range(ntime):
     # else:
     #     S[i] = np.count_nonzero(ExistenceEs_i[i, :] == 1)
     S[i] = np.count_nonzero(ExistenceEs_i[i, :] == 1)
+    
 fd_matriz = arrfd[0:n_species,1:len(dfd_names_col)+1]
 ones_0 = sum(fd_matriz)
 ones_i = np.zeros((int(ntime), len(ones_0)))
+ones_j = np.zeros((int(ntime), len(ones_0)))
 for i in range(int(ntime)):
     posi = np.where(IperES_i[i, :] == 0)
     fd_matriz[posi, :] = 0
     ones_i[i, :] = sum(fd_matriz)
     nonzeroind = np.nonzero( ones_i[i, :])[0]
+    
+    for j in range(len(fd_matriz[0,:])):
+        id_fun = np.where(fd_matriz[:, j] * IperES_i[i,:] != 0)
+        ones_j[i, j] = np.sum(IperES_i[i, id_fun]) / ones_0[j]
+        
+    
     # if BO[i] <= HumHa * BO[0]:
     #    FunDiv[i] = 0
     # else:
     FunDiv[i] = len(fd_matriz[0, :]) - (len(fd_matriz[0, :]) - len(nonzeroind))
 name_S = np.array(['Riqueza de especies'])
 name_FD = np.array(['Diversidad de funciones ecológicas'])
-# Species per Function
+
+# 6. Species per Function
 name_EspixFun = {}
+name_PperxFun = {}
 for i in range(len(dfd_names_col)):
     name_EspixFun[i] = "Número de especies - " + dfd_names_col[i]
+    name_PperxFun[i] = "Persistencia promedio de - " + dfd_names_col[i]
+    
 data = np.array(list(name_EspixFun.items()))
 name_EspixFun = data[:, 1]
+data = np.array(list(name_PperxFun.items()))
+name_PperxFun = data[:, 1]
 
 name_PHaA = {}
 name_PperES = {}
@@ -352,7 +374,7 @@ name_PperES = data[:, 1]
 data = np.array(list(name_Existence.items()))
 name_Existence = data[:, 1]
 
-# 6. Health indicator
+# 7. Health indicator
 HealthIndex = np.zeros(ntime)
 InProvAliCobi = np.zeros(ntime)
 DivSisAlimLocal = np.zeros(ntime)
@@ -362,16 +384,16 @@ name_DivSisAlimLocal = np.array(['Diversidad del sistema alimentario local'])
 name_Con_Acces = np.array(['Indice de condiciones de acceso'])
 
 peso_Cobi = np.array([50, 30, 35, 40, 50, 25, 5, 15, 0, 40, 10])
-print(sum(peso_Cobi))
+# print(sum(peso_Cobi))
 
 for i in range(int(ntime)):
     InProvAliCobi[i] = sum((peso_Cobi * Ys[i, 0:11]) ) / (max(peso_Cobi) * sum(Ys[i, 0:11]))
     
     HealthIndex[i], DivSisAlimLocal[i], Con_Acces[i] = Health_auxiliary.health_index(time[0], time[i], time, dhealth, FunDiv[i], len(dfd_names_col)-1, ICAmv_modificada[i],
-                                                   np.mean(NoiseAttenuationMatriz[i,20:22]),  ICAairmv[i], InProvAliCobi[i])
+                                                   np.mean(NoiseAttenuationVector_mv[i,:]),  ICAairmv[i], InProvAliCobi[i])
 
 
-# 7. Diversity of productive activities
+# 8. Diversity of productive activities
 tOACobj = dp[12:16,1]
 posCobj = [0, 1, 5, 8]
 VacOAci = dp[16:30,1]
@@ -388,7 +410,6 @@ AporteDivEmpren = np.zeros(ntime)
 AporteDivInclus = np.zeros(ntime)
 
 for i in range(int(ntime)):
-    # print(Ys[i, 0:11])
     VacOCobj = (tOACobj * Ys[i, posCobj])
     VacO[i] = (sum(VacOCobj) + sum(VacOAci))
     PoETEA[i] = (pPoEcAc * Ys[i, 14])
@@ -415,10 +436,10 @@ for i in range(int(ntime)):
 name_IDivAPro = np.array(['Indice de diversidad de actividades productivas'])
 name_OandE = np.array(['Personas que están ocupadas'])
 
-# 8. Standardized conectivity
+# 9. Standardized conectivity
 ConectBOn = (2/3) ** (Ys[:,12])
 name_ConectBOn = np.array(['Conectividad normalizada'])
-# 9. Total population
+# 10. Total population
 Ys[:,13] = (Ys[:,13])
 Ys[:,14] = (Ys[:,14])
 Ys[:,15] = (Ys[:,15])
@@ -426,7 +447,7 @@ Ys[:,16] = (Ys[:,16])
 Ys[:,17] = (Ys[:,17])
 PAE = (Ys[:,13]) + (Ys[:,14]) + (Ys[:,15])
 name_PAE = np.array(['Población total'])
-# 10. Water consumption
+# 11. Water consumption
 ConsHDomes_con = dw[3,1] * PAE * (1-(mca ** 4) / 3)
 name_ConsHDomes_con = np.array(['Consumo de agua doméstico con cuidado del agua'])
 ConsHDomes_sin = dw[3,1] * PAE
@@ -439,12 +460,12 @@ name_Qm_con = np.array(['Caudal medio de salida con cuidado del agua'])
 Qm_sin = OHTD - (ConsIndusEner + ConsHDomes_sin + ConsOtros)
 name_Qm_sin = np.array(['Caudal medio de salida sin cuidado del agua'])
 
-# 11. Productive activities indices
+# 12. Productive activities indices
 name_VacOcup = np.array(['Vacantes de ocupación'])
 name_AporEmpren = np.array(['Aporte a la diversidad de actividades productivas desde el fortalecemiento de emprendimiento'])
 name_AporDiver = np.array(['Aporte a la diversidad de actividades productivas desde el fortalecimiento en diversidad e inclusión'])
 name_PoETEA = np.array(['Población economicamente activa'])
-# 12. Social tissue indices
+# 13. Social tissue indices
 name_EnfInte = np.array(['Enfoque integrado'])
 name_ColAct = np.array(['Colaboración entre actores'])
 name_IntCom = np.array(['Interés Común'])
@@ -456,9 +477,9 @@ name_sum_pyf = np.array(['Diversidad de programas y prácticas de cuidado'])
 name_mca = np.array(['Indicador de cuidado del agua'])
 name_mcf = np.array(['Indicador de cuidado de la fauna'])
 name_mcb = np.array(['Indicador de cuidado del bosque'])
-# 13. Health indices
+# 14. Health indices
 name_InProvAliCobi = np.array(['Indice de provisión de alimento por coberturas'])
-# 14. transformation rates
+# 15. transformation rates
 transformations = np.transpose([[None for x0_cover in range(ntime)] for x0_cover in range(len(x0_cover))])
 cover = np.transpose(Ys[:,0:11])
 for i in range(int(ntime)):
@@ -482,23 +503,28 @@ names = np.concatenate((name_year,
                         name_ConsHDomes_sin,
                         name_Qm_con,
                         name_Qm_sin,
-                        name_WQ, 
-                        name_AirQ, 
-                        name_NoiseAte, 
-                        name_PHaA, 
-                        name_PperES, 
-                        name_Existence, 
+                        # name_WQ,
+                        name_mv_original,
+                        name_mv_modificada,
+                        # name_AirQ,
+                        name_mv_AirQ,
+                        # name_NoiseAte,
+                        name_mv_NoiseAte, 
+                        # name_PHaA, 
+                        # name_PperES, 
+                        # name_Existence, 
                         name_S,
                         name_FD,
                         name_EspixFun,
+                        name_PperxFun,
                         name_Health,
                         name_Con_Acces,
                         name_DivSisAlimLocal, 
                         name_InProvAliCobi,
                         name_IDivAPro, 
                         name_VacOcup,
-                        name_AporEmpren,
-                        name_AporDiver,
+                        # name_AporEmpren,
+                        # name_AporDiver,
                         name_OandE,
                         name_PoETEA,
                         name_EnfInte,
@@ -541,26 +567,28 @@ output = np.c_[time,
                ConsHDomes_sin,
                Qm_con,
                Qm_sin,
-               ICAiv_original,
+            #    ICAiv_original,
                ICAmv_original,
                ICAmv_modificada,
-               ICAairiv,
+            #    ICAairiv,
                ICAairmv, 
-               NoiseAttenuationMatriz, 
-               HabES_i,
-               IperES_i, 
-               ExistenceEs_i, 
+            #    NoiseAttenuationMatriz, 
+               NoiseAttenuationVector_mv,
+            #    HabES_i,
+            #    IperES_i, 
+            #    ExistenceEs_i, 
                S, 
                FunDiv, 
                ones_i,
+               ones_j,
                HealthIndex, 
                Con_Acces,
                DivSisAlimLocal, 
                InProvAliCobi,
                IDivAPro, 
                np.trunc(VacO),
-               AporteDivEmpren,
-               AporteDivInclus,
+            #    AporteDivEmpren,
+            #    AporteDivInclus,
                np.trunc(PoOcu),
                np.trunc(PoETEA),
                EnfIntefr_Cobi,
@@ -577,7 +605,7 @@ output = np.c_[time,
                ]
 model_time_series = pd.DataFrame(output, columns=names).apply(pd.to_numeric)
 
-# indicators = resilience_indicators.slope_time_series(model_time_series, names)
+indicators = resilience_indicators.slope_time_series(model_time_series, names)
 
 if decimalSeparator=="punto":
         separator = '.'
