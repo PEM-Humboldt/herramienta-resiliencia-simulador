@@ -605,7 +605,7 @@ output = np.c_[time,
                ]
 model_time_series = pd.DataFrame(output, columns=names).apply(pd.to_numeric)
 
-indicators = resilience_indicators.slope_time_series(model_time_series, names)
+# indicators = resilience_indicators.slope_time_series(model_time_series, names)
 
 if decimalSeparator=="punto":
         separator = '.'
