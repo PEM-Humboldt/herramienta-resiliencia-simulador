@@ -339,8 +339,6 @@ for i in range(int(ntime)):
     for j in range(len(fd_matriz[0,:])):
         id_fun = np.where(fd_matriz[:, j] * IperES_i[i,:] != 0)
         ones_j[i, j] = np.sum(IperES_i[i, id_fun]) / ones_0[j]
-        
-    
     # if BO[i] <= HumHa * BO[0]:
     #    FunDiv[i] = 0
     # else:
@@ -605,7 +603,48 @@ output = np.c_[time,
                ]
 model_time_series = pd.DataFrame(output, columns=names).apply(pd.to_numeric)
 
-# indicators = resilience_indicators.slope_time_series(model_time_series, names)
+# print(name_cover[0:10])
+# print(name_SF_CSA[0])
+# names_rel_indicator_direc = np.concatenate((name_cover[0:10],
+#                                       name_water,
+#                                       name_population,
+#                                       name_SF_CSA[0],
+#                                       name_PAE,
+#                                       name_ConectBOn,
+#                                       name_ConsHDomes_con,
+#                                       name_ConsHDomes_sin,
+#                                       name_Qm_con,
+#                                       name_Qm_sin,
+#                                       name_mv_original,
+#                                       name_mv_modificada,
+#                                       name_mv_AirQ,
+#                                       name_mv_NoiseAte,
+#                                       name_S,
+#                                       name_FD,
+#                                       name_EspixFun,
+#                                       name_PperxFun,
+#                                       name_Health,
+#                                       name_Con_Acces,
+#                                       name_DivSisAlimLocal,
+#                                       name_InProvAliCobi,
+#                                       name_IDivAPro,
+#                                       name_VacOcup,
+#                                       name_PoETEA,
+#                                       name_EnfInte,
+#                                       name_ColAct,
+#                                       name_IntCom,
+#                                       name_ProgIyP,
+#                                       name_sum_pyf,
+#                                       name_mca,
+#                                       name_mcf,
+#                                       name_mcb
+#                                       ))
+
+# names_rel_indicator_indirec = np.concatenate((name_cover[11], name_SF_CSA[1]))
+
+# indicators = resilience_indicators.slope_time_series(model_time_series,
+#                                                      names_rel_indicator_direc,
+#                                                      names_rel_indicator_indirec)
 
 if decimalSeparator=="punto":
         separator = '.'

@@ -2,6 +2,11 @@ import numpy as np
 import pandas as pd
 
 def slope_time_series(model_time_series, names):
+    
+    norm_names = pd.DataFrame(model_time_series, columns= ['Umbral día (db)',	'Umbral noche (db)',
+                                         'Atenuación (db)',	'Promedio día (db)',
+                                         'Promedio noche (db)'])
+    
     delta_time = []
     arr = model_time_series.to_numpy()
     nrow = len(arr[:,0])
