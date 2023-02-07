@@ -35,7 +35,7 @@ def initial_cover(workspace):
         sum_cover[i][2] = matrix_data[i, 1]
     return sum_cover
 #-------------------------------------------------------------------------------------------------------------
-    # Determines the number of existing categories in the shape layer
+    ## Determines the number of existing categories in the shape layer
     # column_values = layers_new[["cobertura", "codigo_clc_new"]].values
     # matrix_data= np.vstack({tuple(e) for e in column_values}) # 11 x 2
     # unique_values = sorted(pd.unique(matrix_data[:,0]))
