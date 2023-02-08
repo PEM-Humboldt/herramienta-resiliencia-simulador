@@ -45,22 +45,22 @@ parametersPath = conditionsPath + parametersFile
 # initial conditions for covers (Cobi)
 data_cover = sorted(initial_cond_cover.initial_cover(workspace))
 
-def f(l):
+def f_cover(l):
     l2 = []
     for i in data_cover:
         for j in range(len(i)-2):
              l2.append((i[j], i[-2]))
     return l2
 
-def g(l):
+def g_cover(l):
     l2 = []
     for i in data_cover:
         for j in range(len(i)-2):
              l2.append((i[-1]))
     return l2
 
-data1_cover = f(data_cover)
-data1_cover_cod = g(data_cover)
+data1_cover = f_cover(data_cover)
+data1_cover_cod = g_cover(data_cover)
 data1_cover_name = [i for i,j in data1_cover]
 data1_cover_value = [j for i,j in data1_cover]
 
@@ -155,7 +155,7 @@ dci = dci.to_numpy()
 
 # INTEGRATOR CONFIGURATION
 tmin = x0_SF_CSAt[2]
-tmax = x0_SF_CSAt[3]
+tmax = x0_SF_CSAt[3] + 1
 time = np.arange(tmin, tmax, 1)
 name_year = np.array(['Año'])
 ntime = len(time)
@@ -302,8 +302,8 @@ for i in range(ntime):
     else:
         ConectBO[i] = 1
     
-FunDiv = np.zeros(int(ntime))
-S = np.zeros(int(ntime)) # species richness
+FunDiv = [None for ii in range(ntime)]
+S_ES = [None for ii in range(ntime)]
 dfd = pd.read_excel (parametersPath, sheet_name='Functional_diversity')
 arrfd = dfd.to_numpy()
 dfd_names_col = dfd.columns.values
@@ -321,30 +321,29 @@ for i in range(ntime):
         IperES_i = np.vstack([IperES_i, PersistenceESi])
         ExistenceEs_i = np.vstack([ExistenceEs_i, ExistenceESi])
     # if BO[i] <= HumHa * BO[0]:
-    #     S[i] = 0
+    #     S_ES[i] = 0
     # else:
-    #     S[i] = np.count_nonzero(ExistenceEs_i[i, :] == 1)
-    S[i] = np.count_nonzero(ExistenceEs_i[i, :] == 1)
+    #     S_ES[i] = np.count_nonzero(ExistenceEs_i[i, :] == 1)
+    S_ES[i] = np.count_nonzero(ExistenceEs_i[i, :] == 1)
     
 fd_matriz = arrfd[0:n_species,1:len(dfd_names_col)+1]
-ones_0 = sum(fd_matriz)
-ones_i = np.zeros((int(ntime), len(ones_0)))
-ones_j = np.zeros((int(ntime), len(ones_0)))
+max_FUN = sum(fd_matriz)
+fd_num = [[None for jj in range(len(max_FUN))] for kk in range(ntime)]
+fd_per = [[None for jj in range(len(max_FUN))] for kk in range(ntime)]
+
 for i in range(int(ntime)):
     posi = np.where(IperES_i[i, :] == 0)
     fd_matriz[posi, :] = 0
-    ones_i[i, :] = sum(fd_matriz)
-    nonzeroind = np.nonzero( ones_i[i, :])[0]
-    
+    fd_num[i][:] = sum(fd_matriz)
+    nonzeroind = np.nonzero(fd_num[i][:])[0]
     for j in range(len(fd_matriz[0,:])):
         id_fun = np.where(fd_matriz[:, j] * IperES_i[i,:] != 0)
-        ones_j[i, j] = np.sum(IperES_i[i, id_fun]) / ones_0[j]
-        
-    
+        fd_per[i][j] = np.sum(IperES_i[i, id_fun]) / max_FUN[j]
     # if BO[i] <= HumHa * BO[0]:
     #    FunDiv[i] = 0
     # else:
     FunDiv[i] = len(fd_matriz[0, :]) - (len(fd_matriz[0, :]) - len(nonzeroind))
+    
 name_S = np.array(['Riqueza de especies'])
 name_FD = np.array(['Diversidad de funciones ecológicas'])
 
@@ -577,10 +576,10 @@ output = np.c_[time,
             #    HabES_i,
             #    IperES_i, 
             #    ExistenceEs_i, 
-               S, 
+               S_ES, 
                FunDiv, 
-               ones_i,
-               ones_j,
+               fd_num,
+               fd_per,
                HealthIndex, 
                Con_Acces,
                DivSisAlimLocal, 
@@ -605,6 +604,8 @@ output = np.c_[time,
                ]
 model_time_series = pd.DataFrame(output, columns=names).apply(pd.to_numeric)
 
+# names_rel_index = np.concatenate(())
+
 # indicators = resilience_indicators.slope_time_series(model_time_series, names)
 
 if decimalSeparator=="punto":
@@ -615,8 +616,9 @@ else:
 model_time_series.to_csv(f'./outputs/{result_name}', sep=';', decimal=separator, encoding='utf-8-sig')
 
 
-# OPTIONAL - PLOT TIME SERIES
-# plt.figure(1)
+# # OPTIONAL - PLOT TIME SERIES
+# k = 1
+# plt.figure(k)
 # for i in range(nx0_cover):
 #     plt.plot(time, Ys[:, i], label = name_cover[i])
 #     plt.scatter(time, Ys[:, i])
@@ -626,7 +628,7 @@ model_time_series.to_csv(f'./outputs/{result_name}', sep=';', decimal=separator,
 # plt.grid()
 # plt.show()
 
-# plt.figure(2)
+# plt.figure(k + 1)
 # plt.plot(time, Ys[:,11], label = name_water[0])
 # plt.scatter(time, Ys[:,11])
 # plt.legend(loc='best')
@@ -644,7 +646,8 @@ model_time_series.to_csv(f'./outputs/{result_name}', sep=';', decimal=separator,
 # plt.xlabel('tiempo')
 # plt.show()
 
-# plt.figure(4)
+# k = k + 1
+# plt.figure(k)
 # for i in range(len(name_population)):
 #     plt.plot(time, Ys[:,13+i], label = name_population[i])
 #     plt.scatter(time, Ys[:,13+i])
@@ -655,7 +658,8 @@ model_time_series.to_csv(f'./outputs/{result_name}', sep=';', decimal=separator,
 # plt.grid()
 # plt.show()
 
-# plt.figure(5)
+# k = k + 1
+# plt.figure(k)
 # for i in range(len(name_SF_CSA)):
 #     plt.plot(time, Ys[:,18+i], label = name_SF_CSA[i])
 #     plt.scatter(time, Ys[:,18+i])
@@ -664,7 +668,8 @@ model_time_series.to_csv(f'./outputs/{result_name}', sep=';', decimal=separator,
 # plt.grid()
 # plt.show()
 
-# plt.figure(6)
+# k = k + 1
+# plt.figure(k)
 # plt.plot(time, ConsHDomes_con, label = name_ConsHDomes_con[0])
 # plt.scatter(time, ConsHDomes_con)
 # plt.plot(time, ConsHDomes_sin, label = name_ConsHDomes_sin[0])
@@ -674,7 +679,8 @@ model_time_series.to_csv(f'./outputs/{result_name}', sep=';', decimal=separator,
 # plt.grid()
 # plt.show()
 
-# plt.figure(7)
+# k = k + 1
+# plt.figure(k)
 # for i in range(n_species):
 #     plt.plot(time, HabES_i[:, i], label = name_PHaA[i])
 #     plt.scatter(time, HabES_i[:, i])
@@ -683,7 +689,8 @@ model_time_series.to_csv(f'./outputs/{result_name}', sep=';', decimal=separator,
 # plt.grid()
 # plt.show()
 
-# plt.figure(8)
+# k = k + 1
+# plt.figure(k)
 # for i in range(n_species):
 #     plt.plot(time, IperES_i[:, i], label = name_PperES[i])
 #     plt.scatter(time, IperES_i[:, i])
@@ -692,7 +699,8 @@ model_time_series.to_csv(f'./outputs/{result_name}', sep=';', decimal=separator,
 # plt.grid()
 # plt.show()
 
-# plt.figure(9)
+# k = k + 1
+# plt.figure(k)
 # for i in range(n_species):
 #     plt.plot(time, ExistenceEs_i[:, i], label = name_Existence[i])
 #     plt.scatter(time, ExistenceEs_i[:, i])
@@ -701,15 +709,17 @@ model_time_series.to_csv(f'./outputs/{result_name}', sep=';', decimal=separator,
 # plt.grid()
 # plt.show()
 
-# plt.figure(10)
-# plt.plot(time, S, label = name_S[0])
-# plt.scatter(time, S)
+# k = k + 1
+# plt.figure(k)
+# plt.plot(time, S_ES, label = name_S[0])
+# plt.scatter(time, S_ES)
 # plt.legend(loc='best')
 # plt.xlabel('tiempo')
 # plt.grid()
 # plt.show()
 
-# plt.figure(11)
+# k = k + 1
+# plt.figure(k)
 # plt.plot(time, FunDiv, label = name_FD[0])
 # plt.scatter(time, FunDiv)
 # plt.legend(loc='best')
@@ -717,16 +727,30 @@ model_time_series.to_csv(f'./outputs/{result_name}', sep=';', decimal=separator,
 # plt.grid()
 # plt.show()
 
-# plt.figure(12)
+# k = k + 1
+# plt.figure(k)
 # for i in range(len(name_EspixFun)):
-#     plt.plot(time, ones_i[:, i], label = name_EspixFun[i])
-#     plt.scatter(time, ones_i[:, i])
+#     coli = [tple[i] for tple in fd_num]
+#     plt.plot(time, coli, label = name_EspixFun[i])
+#     plt.scatter(time, coli)
 # plt.legend(loc='best')
 # plt.xlabel('tiempo')
 # plt.grid()
 # plt.show()
 
-# plt.figure(13)
+# k = k + 1
+# plt.figure(k)
+# for i in range(len(name_PperxFun)):
+#     coli = [tple[i] for tple in fd_per]
+#     plt.plot(time, coli, label = name_PperxFun[i])
+#     plt.scatter(time, coli)
+# plt.legend(loc='best')
+# plt.xlabel('tiempo')
+# plt.grid()
+# plt.show()
+
+# k = k + 1
+# plt.figure(k)
 # plt.plot(time, HealthIndex, label = name_Health[0])
 # plt.scatter(time, HealthIndex)
 # plt.plot(time, Con_Acces, label = name_Con_Acces[0])
@@ -740,7 +764,8 @@ model_time_series.to_csv(f'./outputs/{result_name}', sep=';', decimal=separator,
 # plt.grid()
 # plt.show()
 
-# plt.figure(14)
+# k = k + 1
+# plt.figure(k)
 # plt.plot(time, IDivAPro, label = name_IDivAPro[0])
 # plt.scatter(time, IDivAPro)
 # plt.legend(loc='best')
@@ -748,7 +773,8 @@ model_time_series.to_csv(f'./outputs/{result_name}', sep=';', decimal=separator,
 # plt.grid()
 # plt.show()
 
-# plt.figure(15)
+# k = k + 1
+# plt.figure(k)
 # plt.plot(time, np.trunc(VacO), label = name_VacOcup[0])
 # plt.scatter(time, np.trunc(VacO))
 # plt.legend(loc='best')
@@ -756,7 +782,8 @@ model_time_series.to_csv(f'./outputs/{result_name}', sep=';', decimal=separator,
 # plt.grid()
 # plt.show()
 
-# plt.figure(16)
+# k = k + 1
+# plt.figure(k)
 # fig, axes = plt.subplots(3)
 # axes[0].plot(time, EnfIntefr_Cobi, label = name_EnfInte[0])
 # axes[0].scatter(time, EnfIntefr_Cobi)
@@ -770,7 +797,8 @@ model_time_series.to_csv(f'./outputs/{result_name}', sep=';', decimal=separator,
 # plt.xlabel('tiempo')
 # plt.show()
 
-# plt.figure(17)
+# k = k + 1
+# plt.figure(k)
 # plt.plot(time, Qm_con, label = name_Qm_con[0])
 # plt.scatter(time, Qm_con)
 # plt.plot(time, Qm_sin, label = name_Qm_sin[0])
