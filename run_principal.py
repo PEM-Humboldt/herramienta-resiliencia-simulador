@@ -502,16 +502,16 @@ names = np.concatenate((name_year,
                         name_ConsHDomes_sin,
                         name_Qm_con,
                         name_Qm_sin,
-                        # name_WQ,
+                        name_WQ, # si
                         name_mv_original,
                         name_mv_modificada,
-                        # name_AirQ,
+                        name_AirQ, # si
                         name_mv_AirQ,
-                        # name_NoiseAte,
+                        name_NoiseAte, # si
                         name_mv_NoiseAte, 
-                        # name_PHaA, 
-                        # name_PperES, 
-                        # name_Existence, 
+                        name_PHaA,  # si
+                        name_PperES, # si
+                        name_Existence, # si
                         name_S,
                         name_FD,
                         name_EspixFun,
@@ -522,8 +522,8 @@ names = np.concatenate((name_year,
                         name_InProvAliCobi,
                         name_IDivAPro, 
                         name_VacOcup,
-                        # name_AporEmpren,
-                        # name_AporDiver,
+                        name_AporEmpren, # si
+                        name_AporDiver, # si
                         name_OandE,
                         name_PoETEA,
                         name_EnfInte,
@@ -535,8 +535,8 @@ names = np.concatenate((name_year,
                         name_sum_pyf,
                         name_mca,
                         name_mcf,
-                        name_mcb
-                        # name_trnsf
+                        name_mcb,
+                        name_trnsf # si
                         ))
 output = np.c_[time, 
                Ys[:,0],
@@ -566,16 +566,16 @@ output = np.c_[time,
                ConsHDomes_sin,
                Qm_con,
                Qm_sin,
-            #    ICAiv_original,
+               ICAiv_original, # si
                ICAmv_original,
                ICAmv_modificada,
-            #    ICAairiv,
+               ICAairiv, # si
                ICAairmv, 
-            #    NoiseAttenuationMatriz, 
+               NoiseAttenuationMatriz, # si
                NoiseAttenuationVector_mv,
-            #    HabES_i,
-            #    IperES_i, 
-            #    ExistenceEs_i, 
+               HabES_i,  # si
+               IperES_i,  # si
+               ExistenceEs_i, # si
                S_ES, 
                FunDiv, 
                fd_num,
@@ -586,8 +586,8 @@ output = np.c_[time,
                InProvAliCobi,
                IDivAPro, 
                np.trunc(VacO),
-            #    AporteDivEmpren,
-            #    AporteDivInclus,
+               AporteDivEmpren, # si
+               AporteDivInclus, # si
                np.trunc(PoOcu),
                np.trunc(PoETEA),
                EnfIntefr_Cobi,
@@ -599,8 +599,8 @@ output = np.c_[time,
                sum_pyg,
                mca,
                mcf,
-               mcb
-            #    transformations
+               mcb,
+               transformations # si
                ]
 model_time_series = pd.DataFrame(output, columns=names).apply(pd.to_numeric)
 
