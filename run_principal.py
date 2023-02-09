@@ -284,11 +284,11 @@ NoiseAttenuationMatriz = np.transpose([[None for name_NoiseAte in range(ntime)] 
 NoiseAttenuationVector_mv = np.transpose([[None for name_NoiseAte in range(ntime)] for name_NoiseAte in range(2)])
 
 for i in range(ntime):
-    NoiseAttenuationMatriz[i,0] = -((dav[0,3] - dav[0,0]) / dav[0,3]) + abs((((dav[0,3] - dav[0,2] * sum(ACob[i,0:2]) / sum(ACob[i,:])) - dav[0,0]) / (dav[0,3] - dav[0,2] * sum(ACob[i,0:2]) / sum(ACob[i,:])))) # agricola dia
-    NoiseAttenuationMatriz[i,10] = -((dav[0,4] - dav[0,1]) / dav[0,4]) + abs((((dav[0,4] - dav[0,2] * sum(ACob[i,0:2]) / sum(ACob[i,:])) - dav[0,1]) / (dav[0,4] - dav[0,2] * sum(ACob[i,0:2]) / sum(ACob[i,:])))) # agricola noche
+    NoiseAttenuationMatriz[i,0] = -((dav[0,3] - dav[0,0]) / dav[0,3]) + abs((((dav[0,3] - dav[0,2] * (sum(ACob[i,0:2]) / sum(ACob[i,:])) ** (1/3)) - dav[0,0]) / (dav[0,3] - dav[0,2] * (sum(ACob[i,0:2]) / sum(ACob[i,:])) ** (1/3)))) # agricola dia
+    NoiseAttenuationMatriz[i,10] = -((dav[0,4] - dav[0,1]) / dav[0,4]) + abs((((dav[0,4] - dav[0,2] * (sum(ACob[i,0:2]) / sum(ACob[i,:])) ** (1/3)) - dav[0,1]) / (dav[0,4] - dav[0,2] * (sum(ACob[i,0:2]) / sum(ACob[i,:])) ** (1/3)))) # agricola noche
     
-    NoiseAttenuationMatriz[i,1:10] = -((dav[1:10,3] - dav[1:10,0]) / dav[1:10,3]) + abs((((dav[1:10,3] - dav[1:10,2] * sum(ACob[i,0:2]) / sum(ACob[i,:])) - dav[1:10,0]) / (dav[1:10,3] - dav[1:10,2] * ACob[i,2:11] / sum(ACob[i,:])))) # agricola dia
-    NoiseAttenuationMatriz[i,11:20] = -((dav[1:10,4] - dav[1:10,1]) / dav[1:10,4]) + abs((((dav[1:10,4] - dav[1:10,2] * sum(ACob[i,0:2]) / sum(ACob[i,:])) - dav[1:10,1]) / (dav[1:10,4] - dav[1:10,2] * ACob[i,2:11] / sum(ACob[i,:])))) # agricola noche
+    NoiseAttenuationMatriz[i,1:10] = -((dav[1:10,3] - dav[1:10,0]) / dav[1:10,3]) + abs((((dav[1:10,3] - dav[1:10,2] * (sum(ACob[i,0:2]) / sum(ACob[i,:])) ** (1/3)) - dav[1:10,0]) / (dav[1:10,3] - dav[1:10,2] * (ACob[i,2:11] / sum(ACob[i,:])) ** (1/3)))) # agricola dia
+    NoiseAttenuationMatriz[i,11:20] = -((dav[1:10,4] - dav[1:10,1]) / dav[1:10,4]) + abs((((dav[1:10,4] - dav[1:10,2] * (sum(ACob[i,0:2]) / sum(ACob[i,:])) ** (1/3)) - dav[1:10,1]) / (dav[1:10,4] - dav[1:10,2] * (ACob[i,2:11] / sum(ACob[i,:])) ** (1/3)))) # agricola noche
     NoiseAttenuationVector_mv[i,0] = np.nanmean(NoiseAttenuationMatriz[i,0:10])
     NoiseAttenuationVector_mv[i,1] = np.nanmean(NoiseAttenuationMatriz[i,10:20])
    
@@ -330,6 +330,7 @@ fd_matriz = arrfd[0:n_species,1:len(dfd_names_col)+1]
 max_FUN = sum(fd_matriz)
 fd_num = [[None for jj in range(len(max_FUN))] for kk in range(ntime)]
 fd_per = [[None for jj in range(len(max_FUN))] for kk in range(ntime)]
+fd_all_per = [None for kk in range(ntime)]
 
 for i in range(int(ntime)):
     posi = np.where(IperES_i[i, :] == 0)
@@ -343,9 +344,11 @@ for i in range(int(ntime)):
     #    FunDiv[i] = 0
     # else:
     FunDiv[i] = len(fd_matriz[0, :]) - (len(fd_matriz[0, :]) - len(nonzeroind))
+    fd_all_per[i]= np.sum(IperES_i[i, :]) / len(max_FUN)
     
 name_S = np.array(['Riqueza de especies'])
 name_FD = np.array(['Diversidad de funciones ecológicas'])
+name_all_per = np.array(['Persistencia promedio de todas las especies'])
 
 # 6. Species per Function
 name_EspixFun = {}
@@ -354,10 +357,10 @@ for i in range(len(dfd_names_col)):
     name_EspixFun[i] = "Número de especies - " + dfd_names_col[i]
     name_PperxFun[i] = "Persistencia promedio de - " + dfd_names_col[i]
     
-data = np.array(list(name_EspixFun.items()))
-name_EspixFun = data[:, 1]
-data = np.array(list(name_PperxFun.items()))
-name_PperxFun = data[:, 1]
+data__EspixFun = np.array(list(name_EspixFun.items()))
+name_EspixFun = data__EspixFun[:, 1]
+data_PperxFun = np.array(list(name_PperxFun.items()))
+name_PperxFun = data_PperxFun[:, 1]
 
 name_PHaA = {}
 name_PperES = {}
@@ -366,12 +369,12 @@ for i in range(n_species):
     name_PHaA[i] = "Hábitat - " + species_names[i]
     name_PperES[i] = "Persistencia - " + species_names[i]
     name_Existence[i] = "Existencia - " + species_names[i]
-data = np.array(list(name_PHaA.items()))
-name_PHaA = data[:, 1]
-data = np.array(list(name_PperES.items()))
-name_PperES = data[:, 1]
-data = np.array(list(name_Existence.items()))
-name_Existence = data[:, 1]
+data_PHaA = np.array(list(name_PHaA.items()))
+name_PHaA = data_PHaA[:, 1]
+data_PperES = np.array(list(name_PperES.items()))
+name_PperES = data_PperES[:, 1]
+data_Existence = np.array(list(name_Existence.items()))
+name_Existence = data_Existence[:, 1]
 
 # 7. Health indicator
 HealthIndex = np.zeros(ntime)
@@ -458,6 +461,12 @@ Qm_con = OHTD - (ConsIndusEner + ConsHDomes_con + ConsOtros)
 name_Qm_con = np.array(['Caudal medio de salida con cuidado del agua'])
 Qm_sin = OHTD - (ConsIndusEner + ConsHDomes_sin + ConsOtros)
 name_Qm_sin = np.array(['Caudal medio de salida sin cuidado del agua'])
+EsC = dw[21,1] # OHTS
+QAMB = EsC - OHTD
+Qsal_QAMB_con = (Qm_con - QAMB) / QAMB
+Qsal_QAMB_sin = (Qm_sin - QAMB) / QAMB
+name_Qsal_QAMB_con = np.array(['Caudal a la salida - Caudal ambiental con cuidado del agua'])
+name_Qsal_QAMB_sin = np.array(['Caudal a la salida - Caudal ambiental sin cuidado del agua'])
 
 # 12. Productive activities indices
 name_VacOcup = np.array(['Vacantes de ocupación'])
@@ -478,15 +487,15 @@ name_mcf = np.array(['Indicador de cuidado de la fauna'])
 name_mcb = np.array(['Indicador de cuidado del bosque'])
 # 14. Health indices
 name_InProvAliCobi = np.array(['Indice de provisión de alimento por coberturas'])
-# 15. transformation rates
-transformations = np.transpose([[None for x0_cover in range(ntime)] for x0_cover in range(len(x0_cover))])
-cover = np.transpose(Ys[:,0:11])
-for i in range(int(ntime)):
-    for k in range(nx0_cover):
-        tCobiCobj = cover_rates[k][:]
-        tCobjCobi = cover_rates_t[:][k]
-        transformations[i][k] = sum(tCobjCobi * cover[:, i]) - sum(tCobiCobj * cover[k, i])
-name_trnsf = ['Velocidad de cambio ' + sub for sub in name_cover]
+# # 15. transformation rates
+# transformations = np.transpose([[None for x0_cover in range(ntime)] for x0_cover in range(len(x0_cover))])
+# cover = np.transpose(Ys[:,0:11])
+# for i in range(int(ntime)):
+#     for k in range(nx0_cover):
+#         tCobiCobj = cover_rates[k][:]
+#         tCobjCobi = cover_rates_t[:][k]
+#         transformations[i][k] = sum(tCobjCobi * cover[:, i]) - sum(tCobiCobj * cover[k, i])
+# name_trnsf = ['Velocidad de cambio ' + sub for sub in name_cover]
 
 # Exporting time series as a .csv file
 names = np.concatenate((name_year, 
@@ -502,28 +511,31 @@ names = np.concatenate((name_year,
                         name_ConsHDomes_sin,
                         name_Qm_con,
                         name_Qm_sin,
-                        name_WQ, # si
+                        name_Qsal_QAMB_con,
+                        name_Qsal_QAMB_sin,
+                        # name_WQ, # si
                         name_mv_original,
                         name_mv_modificada,
-                        name_AirQ, # si
+                        # name_AirQ, # si
                         name_mv_AirQ,
-                        name_NoiseAte, # si
+                        # name_NoiseAte, # si
                         name_mv_NoiseAte, 
-                        name_PHaA,  # si
-                        name_PperES, # si
-                        name_Existence, # si
+                        # name_PHaA,  # si
+                        # name_PperES, # si
+                        # name_Existence, # si
                         name_S,
                         name_FD,
                         name_EspixFun,
                         name_PperxFun,
+                        name_all_per,
                         name_Health,
                         name_Con_Acces,
                         name_DivSisAlimLocal, 
                         name_InProvAliCobi,
                         name_IDivAPro, 
                         name_VacOcup,
-                        name_AporEmpren, # si
-                        name_AporDiver, # si
+                        # name_AporEmpren, # si
+                        # name_AporDiver, # si
                         name_OandE,
                         name_PoETEA,
                         name_EnfInte,
@@ -535,8 +547,7 @@ names = np.concatenate((name_year,
                         name_sum_pyf,
                         name_mca,
                         name_mcf,
-                        name_mcb,
-                        name_trnsf # si
+                        name_mcb
                         ))
 output = np.c_[time, 
                Ys[:,0],
@@ -566,28 +577,31 @@ output = np.c_[time,
                ConsHDomes_sin,
                Qm_con,
                Qm_sin,
-               ICAiv_original, # si
+               Qsal_QAMB_con,
+               Qsal_QAMB_sin,
+            #    ICAiv_original, # si
                ICAmv_original,
                ICAmv_modificada,
-               ICAairiv, # si
+            #    ICAairiv, # si
                ICAairmv, 
-               NoiseAttenuationMatriz, # si
+            #    NoiseAttenuationMatriz, # si
                NoiseAttenuationVector_mv,
-               HabES_i,  # si
-               IperES_i,  # si
-               ExistenceEs_i, # si
+            #    HabES_i,  # si
+            #    IperES_i,  # si
+            #    ExistenceEs_i, # si
                S_ES, 
                FunDiv, 
                fd_num,
                fd_per,
+               fd_all_per,
                HealthIndex, 
                Con_Acces,
                DivSisAlimLocal, 
                InProvAliCobi,
                IDivAPro, 
                np.trunc(VacO),
-               AporteDivEmpren, # si
-               AporteDivInclus, # si
+            #    AporteDivEmpren, # si
+            #    AporteDivInclus, # si
                np.trunc(PoOcu),
                np.trunc(PoETEA),
                EnfIntefr_Cobi,
@@ -599,8 +613,7 @@ output = np.c_[time,
                sum_pyg,
                mca,
                mcf,
-               mcb,
-               transformations # si
+               mcb
                ]
 model_time_series = pd.DataFrame(output, columns=names).apply(pd.to_numeric)
 
