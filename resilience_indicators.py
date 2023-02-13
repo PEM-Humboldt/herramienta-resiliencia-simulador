@@ -1,7 +1,37 @@
 import numpy as np
 import pandas as pd
 
-def slope_time_series(model_time_series, names):
+def slope_time_series(model_time_series,             name_Land_Div,
+                                                     names_DA,
+                                                     name_NA,
+                                                     names_HeterAg,
+                                                     name_all_mper_Esp,
+                                                     name_FD,
+                                                     name_IDivAPro,
+                                                     name_DivSisAlimLocal,
+                                                     name_PperxFun,
+                                                     name_ConectBOn,
+                                                     name_water,
+                                                     name_SF,
+                                                     name_Con_Acces,
+                                                     name_p_fort_empren,
+                                                     name_sum_pyf,
+                                                     name_p_fort_inclu,
+                                                     name_SAConfli,
+                                                     name_IntCom,
+                                                     name_mv_modificada,
+                                                     name_mv_NoiseAte_d,
+                                                     num_fun,
+                                                     AT):
+    
+    normalized_variables = np.concatenate((name_Land_Div,
+                                           name_NA,
+                                           names_HeterAg,
+                                           name_water,
+                                           name_p_fort_empren,
+                                           name_p_fort_inclu,
+                                           name_SAConfli,
+                                           name_mv_NoiseAte_d))
     delta_time = []
     arr = model_time_series.to_numpy()
     nrow = len(arr[:,0])

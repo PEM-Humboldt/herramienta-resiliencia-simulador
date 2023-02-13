@@ -16,7 +16,6 @@ import numpy as np
 import matplotlib.pyplot as plt
 import pandas as pd
 import resilience_indicators
-
 import sys
 import getopt
 
@@ -180,9 +179,17 @@ nx0_SF_CSA = len(x0_SF_CSA)
 # Integration by RK45
 x_0 = np.concatenate((x0_cover, x0_water, x0_ConectBO, x0_population, x0_SF_CSA), axis=0) # [cover, water]
 Ys = odeint(ode.differential_equations, x_0, time, args=(cover_rates, cover_rates_t, nx0_cover, dw, dConect, dp, dsf, x_0, parametersPath, workspace, dhealth, dci)) #+  random.uniform(-5000, 5000)
-Yt = np.sum(Ys[:, 0:nx0_cover],axis=1) # axis=1 --> add rows, axis=0 --> add columns
-
 # SPECIAL INDICATORS
+
+# 0. landscape diversity
+ACob = Ys[:, 0:11] 
+Yt = np.sum(Ys[:, 0:nx0_cover],axis = 1) # axis=1 --> add rows, axis=0 --> add columns
+ACob_norm = ACob / Yt[0]
+ACob_log = ACob_norm * np.log(ACob_norm)
+Yt_log = -np.sum(ACob_log[:, 0:nx0_cover],axis=1)
+name_Land_Div = np.array(['Diversidad del paisaje'])
+NA = np.sum(Ys[:, 2:5], axis = 1)
+name_NA = np.array(['Áreas naturales'])
 
 # 1. Water quality
 mca = np.zeros(ntime)
@@ -279,16 +286,15 @@ a4[np.isnan(a4)] = davm[4]
 dav[:,3] = a3
 dav[:,4] = a4
 
-ACob = Ys[:, 0:11] 
 NoiseAttenuationMatriz = np.transpose([[None for name_NoiseAte in range(ntime)] for name_NoiseAte in range(len(name_NoiseAte))])
 NoiseAttenuationVector_mv = np.transpose([[None for name_NoiseAte in range(ntime)] for name_NoiseAte in range(2)])
 
 for i in range(ntime):
-    NoiseAttenuationMatriz[i,0] = -((dav[0,3] - dav[0,0]) / dav[0,3]) + abs((((dav[0,3] - dav[0,2] * (sum(ACob[i,0:2]) / sum(ACob[i,:])) ** (1/3)) - dav[0,0]) / (dav[0,3] - dav[0,2] * (sum(ACob[i,0:2]) / sum(ACob[i,:])) ** (1/3)))) # agricola dia
-    NoiseAttenuationMatriz[i,10] = -((dav[0,4] - dav[0,1]) / dav[0,4]) + abs((((dav[0,4] - dav[0,2] * (sum(ACob[i,0:2]) / sum(ACob[i,:])) ** (1/3)) - dav[0,1]) / (dav[0,4] - dav[0,2] * (sum(ACob[i,0:2]) / sum(ACob[i,:])) ** (1/3)))) # agricola noche
+    NoiseAttenuationMatriz[i,0] = -((dav[0,3] - dav[0,0]) / dav[0,3]) + abs((((dav[0,3] - dav[0,2] * (sum(ACob[i,0:2]) / sum(ACob[i,:])) ** (1/5)) - dav[0,0]) / (dav[0,3] - dav[0,2] * (sum(ACob[i,0:2]) / sum(ACob[i,:])) ** (1/5)))) # agricola dia
+    NoiseAttenuationMatriz[i,10] = -((dav[0,4] - dav[0,1]) / dav[0,4]) + abs((((dav[0,4] - dav[0,2] * (sum(ACob[i,0:2]) / sum(ACob[i,:])) ** (1/5)) - dav[0,1]) / (dav[0,4] - dav[0,2] * (sum(ACob[i,0:2]) / sum(ACob[i,:])) ** (1/5)))) # agricola noche
     
-    NoiseAttenuationMatriz[i,1:10] = -((dav[1:10,3] - dav[1:10,0]) / dav[1:10,3]) + abs((((dav[1:10,3] - dav[1:10,2] * (sum(ACob[i,0:2]) / sum(ACob[i,:])) ** (1/3)) - dav[1:10,0]) / (dav[1:10,3] - dav[1:10,2] * (ACob[i,2:11] / sum(ACob[i,:])) ** (1/3)))) # agricola dia
-    NoiseAttenuationMatriz[i,11:20] = -((dav[1:10,4] - dav[1:10,1]) / dav[1:10,4]) + abs((((dav[1:10,4] - dav[1:10,2] * (sum(ACob[i,0:2]) / sum(ACob[i,:])) ** (1/3)) - dav[1:10,1]) / (dav[1:10,4] - dav[1:10,2] * (ACob[i,2:11] / sum(ACob[i,:])) ** (1/3)))) # agricola noche
+    NoiseAttenuationMatriz[i,1:10] = -((dav[1:10,3] - dav[1:10,0]) / dav[1:10,3]) + abs((((dav[1:10,3] - dav[1:10,2] * (sum(ACob[i,0:2]) / sum(ACob[i,:])) ** (1/5)) - dav[1:10,0]) / (dav[1:10,3] - dav[1:10,2] * (ACob[i,2:11] / sum(ACob[i,:])) ** (1/5)))) # agricola dia
+    NoiseAttenuationMatriz[i,11:20] = -((dav[1:10,4] - dav[1:10,1]) / dav[1:10,4]) + abs((((dav[1:10,4] - dav[1:10,2] * (sum(ACob[i,0:2]) / sum(ACob[i,:])) ** (1/5)) - dav[1:10,1]) / (dav[1:10,4] - dav[1:10,2] * (ACob[i,2:11] / sum(ACob[i,:])) ** (1/5)))) # agricola noche
     NoiseAttenuationVector_mv[i,0] = np.nanmean(NoiseAttenuationMatriz[i,0:10])
     NoiseAttenuationVector_mv[i,1] = np.nanmean(NoiseAttenuationMatriz[i,10:20])
    
@@ -328,27 +334,36 @@ for i in range(ntime):
     
 fd_matriz = arrfd[0:n_species,1:len(dfd_names_col)+1]
 max_FUN = sum(fd_matriz)
+num_ESP = len(fd_matriz[:,0])
 fd_num = [[None for jj in range(len(max_FUN))] for kk in range(ntime)]
 fd_per = [[None for jj in range(len(max_FUN))] for kk in range(ntime)]
-fd_all_per = [None for kk in range(ntime)]
+esp_all_mper = [None for kk in range(ntime)]
+fd_all_mper = [None for kk in range(ntime)]
 
 for i in range(int(ntime)):
     posi = np.where(IperES_i[i, :] == 0)
+    posi2 = np.where(max_FUN != 0)[0]
     fd_matriz[posi, :] = 0
-    fd_num[i][:] = sum(fd_matriz)
-    nonzeroind = np.nonzero(fd_num[i][:])[0]
+    for j in range(len(posi2)):
+        fd_num[i][j] = sum(fd_matriz[:,posi2[j]])
+        
+    sum_fd_all_mper = 0   
     for j in range(len(fd_matriz[0,:])):
         id_fun = np.where(fd_matriz[:, j] * IperES_i[i,:] != 0)
-        fd_per[i][j] = np.sum(IperES_i[i, id_fun]) / max_FUN[j]
-    # if BO[i] <= HumHa * BO[0]:
-    #    FunDiv[i] = 0
-    # else:
-    FunDiv[i] = len(fd_matriz[0, :]) - (len(fd_matriz[0, :]) - len(nonzeroind))
-    fd_all_per[i]= np.sum(IperES_i[i, :]) / len(max_FUN)
+        if max_FUN[j] != 0:
+            fd_per[i][j] = np.sum(IperES_i[i, id_fun]) / max_FUN[j]
+            sum_fd_all_mper += fd_per[i][j]
+            
+    nonzeroind = np.nonzero(fd_num[i][:])[0]
+    FunDiv[i] = len(nonzeroind)
+    esp_all_mper[i]= np.sum(IperES_i[i, :]) / num_ESP
+    fd_all_mper[i]= sum_fd_all_mper / len(posi2)
     
 name_S = np.array(['Riqueza de especies'])
 name_FD = np.array(['Diversidad de funciones ecológicas'])
-name_all_per = np.array(['Persistencia promedio de todas las especies'])
+name_all_mper_Esp = np.array(['Persistencia promedio de todas las especies'])
+name_all_mper_fun = np.array(['Persistencia promedio de todas las funciones'])
+
 
 # 6. Species per Function
 name_EspixFun = {}
@@ -505,6 +520,8 @@ names = np.concatenate((name_year,
                         name_population, 
                         name_SF_CSA,
 #--------------------------------------------------------------------   
+                        name_NA,
+                        name_Land_Div,
                         name_PAE,
                         name_ConectBOn,
                         name_ConsHDomes_con,
@@ -527,7 +544,8 @@ names = np.concatenate((name_year,
                         name_FD,
                         name_EspixFun,
                         name_PperxFun,
-                        name_all_per,
+                        name_all_mper_Esp,
+                        name_all_mper_fun,
                         name_Health,
                         name_Con_Acces,
                         name_DivSisAlimLocal, 
@@ -571,6 +589,8 @@ output = np.c_[time,
                Ys[:,18],
                Ys[:,19],
 #----------------------------------------------------------------------------------------
+               NA,
+               Yt_log,
                np.trunc(PAE),
                ConectBOn,
                ConsHDomes_con,
@@ -593,7 +613,8 @@ output = np.c_[time,
                FunDiv, 
                fd_num,
                fd_per,
-               fd_all_per,
+               esp_all_mper,
+               fd_all_mper,
                HealthIndex, 
                Con_Acces,
                DivSisAlimLocal, 
@@ -617,9 +638,37 @@ output = np.c_[time,
                ]
 model_time_series = pd.DataFrame(output, columns=names).apply(pd.to_numeric)
 
-# names_rel_index = np.concatenate(())
-
-# indicators = resilience_indicators.slope_time_series(model_time_series, names)
+# names_DA = np.array(name_cover[-1])
+# names_HeterAg = np.array(name_cover[0])
+# names_HeterAg.reshape(1)
+# name_SF = np.array(name_SF_CSA[0])
+# name_SAConfli = np.array(name_SF_CSA[1])
+# name_p_fort_empren = np.array(name_population[3])
+# name_p_fort_inclu = np.array(name_population[4])
+# name_mv_NoiseAte_d = np.array(name_mv_NoiseAte[0])
+# indicators = resilience_indicators.slope_time_series(model_time_series, 
+#                                                      name_Land_Div,
+#                                                      names_DA,
+#                                                      name_NA,
+#                                                      names_HeterAg,
+#                                                      name_all_mper_Esp,
+#                                                      name_FD,
+#                                                      name_IDivAPro,
+#                                                      name_DivSisAlimLocal,
+#                                                      name_PperxFun,
+#                                                      name_ConectBOn,
+#                                                      name_water,
+#                                                      name_SF,
+#                                                      name_Con_Acces,
+#                                                      name_p_fort_empren,
+#                                                      name_sum_pyf,
+#                                                      name_p_fort_inclu,
+#                                                      name_SAConfli,
+#                                                      name_IntCom,
+#                                                      name_mv_modificada,
+#                                                      name_mv_NoiseAte_d,
+#                                                      len(posi2),
+#                                                      Yt[1])
 
 if decimalSeparator=="punto":
         separator = '.'
