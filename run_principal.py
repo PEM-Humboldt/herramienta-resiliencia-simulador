@@ -190,6 +190,7 @@ Yt_log = -np.sum(ACob_log[:, 0:nx0_cover],axis=1)
 name_Land_Div = np.array(['Diversidad del paisaje'])
 NA = np.sum(Ys[:, 2:5], axis = 1)
 name_NA = np.array(['Áreas naturales'])
+name_AT = np.array(['Área total'])
 
 # 1. Water quality
 mca = np.zeros(ntime)
@@ -345,7 +346,7 @@ for i in range(int(ntime)):
     posi2 = np.where(max_FUN != 0)[0]
     fd_matriz[posi, :] = 0
     for j in range(len(posi2)):
-        fd_num[i][j] = sum(fd_matriz[:,posi2[j]])
+        fd_num[i][posi2[j]] = sum(fd_matriz[:,posi2[j]])
         
     sum_fd_all_mper = 0   
     for j in range(len(fd_matriz[0,:])):
@@ -520,6 +521,7 @@ names = np.concatenate((name_year,
                         name_population, 
                         name_SF_CSA,
 #--------------------------------------------------------------------   
+                        name_AT,
                         name_NA,
                         name_Land_Div,
                         name_PAE,
@@ -589,6 +591,7 @@ output = np.c_[time,
                Ys[:,18],
                Ys[:,19],
 #----------------------------------------------------------------------------------------
+               Yt,
                NA,
                Yt_log,
                np.trunc(PAE),
