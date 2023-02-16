@@ -674,7 +674,8 @@ output_indicator = resilience_indicators.slope_time_series(model_time_series,
                                                      name_mv_AirQ,
                                                      name_mv_NoiseAte_d,
                                                      Yt[1],
-                                                     name_PAE)
+                                                     name_PAE,
+                                                     posi2)
 
 output_final = pd.concat([model_time_series, output_indicator], axis = 1)
 

@@ -25,7 +25,8 @@ def slope_time_series(model_time_series, name_year,
                                                      name_mv_AirQ,
                                                      name_mv_NoiseAte_d,
                                                      AT,
-                                                     name_PT):
+                                                     name_PT,
+                                                     posi2):
     
     names_normalized_cover = np.concatenate((name_NA, names_HeterAg))
     normalized_covers = model_time_series.loc[:, names_normalized_cover] / AT
@@ -163,7 +164,7 @@ def slope_time_series(model_time_series, name_year,
     name_prop_conectivity = np.concatenate((name_PperxFun, name_ConectBOn, name_water, name_SF, name_Con_Acces))
     data_prop_conectivity = all_normalized_variables.loc[:, name_prop_conectivity]
     num_var_div_conectivity = len(name_prop_conectivity)
-    weight_proper_princ2 = weight_principle / num_var_div_conectivity
+    weight_proper_princ2 = weight_principle / (num_var_div_conectivity - len(name_PperxFun) + len(posi2))
     weight_var_proper_princ2 = weight_proper_princ2
     for i in range(len(name_prop_conectivity)):
         y = np.array(data_prop_conectivity.loc[:, name_prop_conectivity[i]])
