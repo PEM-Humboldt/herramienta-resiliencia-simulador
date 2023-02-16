@@ -641,44 +641,49 @@ output = np.c_[time,
                ]
 model_time_series = pd.DataFrame(output, columns=names).apply(pd.to_numeric)
 
-# names_DA = np.array(name_cover[-1])
-# names_HeterAg = np.array(name_cover[0])
-# names_HeterAg.reshape(1)
-# name_SF = np.array(name_SF_CSA[0])
-# name_SAConfli = np.array(name_SF_CSA[1])
-# name_p_fort_empren = np.array(name_population[3])
-# name_p_fort_inclu = np.array(name_population[4])
-# name_mv_NoiseAte_d = np.array(name_mv_NoiseAte[0])
-# indicators = resilience_indicators.slope_time_series(model_time_series, 
-#                                                      name_Land_Div,
-#                                                      names_DA,
-#                                                      name_NA,
-#                                                      names_HeterAg,
-#                                                      name_all_mper_Esp,
-#                                                      name_FD,
-#                                                      name_IDivAPro,
-#                                                      name_DivSisAlimLocal,
-#                                                      name_PperxFun,
-#                                                      name_ConectBOn,
-#                                                      name_water,
-#                                                      name_SF,
-#                                                      name_Con_Acces,
-#                                                      name_p_fort_empren,
-#                                                      name_sum_pyf,
-#                                                      name_p_fort_inclu,
-#                                                      name_SAConfli,
-#                                                      name_IntCom,
-#                                                      name_mv_modificada,
-#                                                      name_mv_NoiseAte_d,
-#                                                      len(posi2),
-#                                                      Yt[1])
+names_DA = np.array([name_cover[-1]])
+names_HeterAg = np.array([name_cover[0]])
+name_SF = np.array([name_SF_CSA[0]])
+name_SAConfli = np.array([name_SF_CSA[1]])
+name_p_fort_empren = np.array([name_population[3]])
+name_p_fort_inclu = np.array([name_population[4]])
+name_mv_NoiseAte_d = np.array([name_mv_NoiseAte[0]])
+name_water = np.array([name_water[0]])
+
+output_indicator = resilience_indicators.slope_time_series(model_time_series,
+                                                     name_year,
+                                                     name_Land_Div,
+                                                     names_DA,
+                                                     name_NA,
+                                                     names_HeterAg,
+                                                     name_all_mper_Esp,
+                                                     name_all_mper_fun,
+                                                     name_IDivAPro,
+                                                     name_DivSisAlimLocal,
+                                                     name_PperxFun,
+                                                     name_ConectBOn,
+                                                     name_water,
+                                                     name_SF,
+                                                     name_Con_Acces,
+                                                     name_p_fort_empren,
+                                                     name_sum_pyf,
+                                                     name_p_fort_inclu,
+                                                     name_SAConfli,
+                                                     name_IntCom,
+                                                     name_mv_modificada,
+                                                     name_mv_AirQ,
+                                                     name_mv_NoiseAte_d,
+                                                     Yt[1],
+                                                     name_PAE)
+
+output_final = pd.concat([model_time_series, output_indicator], axis = 1)
 
 if decimalSeparator=="punto":
         separator = '.'
 else:
     separator = ','
 
-model_time_series.to_csv(f'./outputs/{result_name}', sep=';', decimal=separator, encoding='utf-8-sig')
+output_final.to_csv(f'./outputs/{result_name}', sep=';', decimal=separator, encoding='utf-8-sig')
 
 
 # # OPTIONAL - PLOT TIME SERIES
