@@ -47,8 +47,8 @@ def habitat_area(dh, BO, BO0, ConectBO, mcf, mcb, workspace):
     for i in range(len(nonzeroUmEs_i)):
         if HabES_i[nonzeroUmEs_i[i]] > UmEs_i[nonzeroUmEs_i[i]]:
             IperES_i[nonzeroUmEs_i[i]] = ((HabES_i[nonzeroUmEs_i[i]] - UmEs_i[nonzeroUmEs_i[i]]) / HabES_i[nonzeroUmEs_i[i]]) * ((mcf + mcb) / 2) * ConectBO
-    else:
-        IperES_i[nonzeroUmEs_i[i]] = 0      
+        else:
+            IperES_i[nonzeroUmEs_i[i]] = 0      
         
     for i in range(len(zeroUmEs_i)):
         if BO <= 0.3 * BO_max:

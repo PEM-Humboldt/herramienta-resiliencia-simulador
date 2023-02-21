@@ -328,13 +328,6 @@ for i in range(ntime):
         IperES_i = np.vstack([IperES_i, PersistenceESi])
         ExistenceEs_i = np.vstack([ExistenceEs_i, ExistenceESi])
         
-    # if BO[i] <= HumHa * BO[0]:
-    #     nonzeroIperES_i = np.nonzero(IperES_i[i,:])[0]
-    #     IperES_i_0 = IperES_i[i,:]
-    #     S_ES[i] = 0
-    # else:
-    #     S_ES[i] = np.count_nonzero(ExistenceEs_i[i, :] == 1)
-        
     S_ES[i] = np.count_nonzero(ExistenceEs_i[i, :] == 1)
     
 fd_matriz = arrfd[0:n_species,1:len(dfd_names_col)+1]
