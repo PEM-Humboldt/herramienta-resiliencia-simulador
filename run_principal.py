@@ -300,7 +300,7 @@ for i in range(ntime):
     NoiseAttenuationVector_mv[i,1] = np.nanmean(NoiseAttenuationMatriz[i,10:20])
    
 # 5. Potential habitat availability
-# HumHa = 0.3
+HumHa = 0.3
 BO = Ys[:, 2] # forest
 ConectBO = (2/3) ** Ys[:, 12] # Conectivity
 for i in range(ntime):
@@ -327,10 +327,14 @@ for i in range(ntime):
         HabES_i = np.vstack([HabES_i, HabitatESi])
         IperES_i = np.vstack([IperES_i, PersistenceESi])
         ExistenceEs_i = np.vstack([ExistenceEs_i, ExistenceESi])
+        
     # if BO[i] <= HumHa * BO[0]:
+    #     nonzeroIperES_i = np.nonzero(IperES_i[i,:])[0]
+    #     IperES_i_0 = IperES_i[i,:]
     #     S_ES[i] = 0
     # else:
     #     S_ES[i] = np.count_nonzero(ExistenceEs_i[i, :] == 1)
+        
     S_ES[i] = np.count_nonzero(ExistenceEs_i[i, :] == 1)
     
 fd_matriz = arrfd[0:n_species,1:len(dfd_names_col)+1]
@@ -649,9 +653,13 @@ name_p_fort_empren = np.array([name_population[3]])
 name_p_fort_inclu = np.array([name_population[4]])
 name_mv_NoiseAte_d = np.array([name_mv_NoiseAte[0]])
 name_water = np.array([name_water[0]])
+name_PperxFun_nectar = np.array([name_PperxFun[2]])
+name_PperxFun_frugi = np.array([name_PperxFun[0]])
+name_PperxFun_semilla = np.array([name_PperxFun[4]])
 
 output_indicator = resilience_indicators.slope_time_series(model_time_series,
                                                      name_year,
+                                                     #------------1----------------
                                                      name_Land_Div,
                                                      names_DA,
                                                      name_NA,
@@ -660,19 +668,24 @@ output_indicator = resilience_indicators.slope_time_series(model_time_series,
                                                      name_all_mper_fun,
                                                      name_IDivAPro,
                                                      name_DivSisAlimLocal,
-                                                     name_PperxFun,
+                                                     #-------------2----------------
+                                                     name_PperxFun_nectar,
+                                                     name_PperxFun_frugi,
+                                                     name_PperxFun_semilla,
                                                      name_ConectBOn,
                                                      name_water,
                                                      name_SF,
                                                      name_Con_Acces,
+                                                     #------------3----------------
                                                      name_p_fort_empren,
-                                                     name_sum_pyf,
                                                      name_p_fort_inclu,
+                                                     #------------4----------------
                                                      name_SAConfli,
+                                                     #------------5---------------
+                                                     name_sum_pyf,
                                                      name_IntCom,
-                                                     name_mv_modificada,
-                                                     name_mv_AirQ,
-                                                     name_mv_NoiseAte_d,
+                                                     name_Health,
+                                                     #------------------------------------
                                                      Yt[1],
                                                      name_PAE,
                                                      posi2)
