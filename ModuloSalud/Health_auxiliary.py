@@ -18,7 +18,7 @@ def health_index(t0, ti, t, dhealth, FunDiv, num_FunDiv, WaterQualityIndex, Nois
 
     Autoconsumo = Num_UPA_AutCons / Num_UPA
     
-    Div_Sis_Alim_Loc = (Autoconsumo + Con_Acces + FunDiv/ num_FunDiv + InProvAliCobi)  / 4
+    Div_Sis_Alim_Loc = (Autoconsumo + Con_Acces + FunDiv + InProvAliCobi)  / 4
     
     HealthIndex = ((Div_Sis_Alim_Loc + AirQualityIndex + WaterQualityIndex + NoiseAttenuation) ** (1-Ind_pobreza))/4
     

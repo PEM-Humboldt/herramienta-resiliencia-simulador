@@ -411,7 +411,7 @@ peso_Cobi = np.array([50, 30, 35, 40, 50, 25, 5, 15, 0, 40, 10])
 for i in range(int(ntime)):
     InProvAliCobi[i] = sum((peso_Cobi * Ys[i, 0:11]) ) / (max(peso_Cobi) * sum(Ys[i, 0:11]))
     
-    HealthIndex[i], DivSisAlimLocal[i], Con_Acces[i] = Health_auxiliary.health_index(time[0], time[i], time, dhealth, FunDiv[i], len(dfd_names_col)-1, ICAmv_modificada[i],
+    HealthIndex[i], DivSisAlimLocal[i], Con_Acces[i] = Health_auxiliary.health_index(time[0], time[i], time, dhealth, fd_all_mper[i], len(dfd_names_col)-1, ICAmv_modificada[i],
                                                    np.mean(NoiseAttenuationVector_mv[i,:]),  ICAairmv[i], InProvAliCobi[i])
 
 
