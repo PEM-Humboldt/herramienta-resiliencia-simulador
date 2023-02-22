@@ -91,7 +91,7 @@ def slope_time_series(model_time_series, name_year,
         b1 = xx_mean_yy_mean / xx_mean2
         indicators[0][j] = b1
         weigths[j] = weight_var_proper1_princ1[i]
-        name_variables_indicator[j] = "Pendiente de la variable - " + name_prop_land_div[i]
+        name_variables_indicator[j] = "Tendencia de la variable - " + name_prop_land_div[i]
         name_variables[j] = name_prop_land_div[i]
         j = j + 1
     
@@ -111,7 +111,7 @@ def slope_time_series(model_time_series, name_year,
         b1 = xx_mean_yy_mean / xx_mean2
         indicators[0][j] = b1
         weigths[j] = weight_var_proper2_princ1[i]
-        name_variables_indicator[j] = "Pendiente de la variable - " + name_prop_div_redun[i]
+        name_variables_indicator[j] = "Tendencia de la variable - " + name_prop_div_redun[i]
         name_variables[j] = name_prop_div_redun[i]
         j = j + 1
     
@@ -131,7 +131,7 @@ def slope_time_series(model_time_series, name_year,
         b1 = xx_mean_yy_mean / xx_mean2
         indicators[0][j] = b1
         weigths[j] = weight_var_proper3_princ1[i]
-        name_variables_indicator[j] = "Pendiente de la variable - " + name_prop_div_AcProd[i]
+        name_variables_indicator[j] = "Tendencia de la variable - " + name_prop_div_AcProd[i]
         name_variables[j] = name_prop_div_AcProd[i]
         j = j + 1
 
@@ -151,7 +151,7 @@ def slope_time_series(model_time_series, name_year,
         b1 = xx_mean_yy_mean / xx_mean2
         indicators[0][j] = b1
         weigths[j] = weight_var_proper4_princ1[i]
-        name_variables_indicator[j] = "Pendiente de la variable - " + name_prop_div_ModVida[i]
+        name_variables_indicator[j] = "Tendencia de la variable - " + name_prop_div_ModVida[i]
         name_variables[j] = name_prop_div_ModVida[i]
         j = j + 1
     len_1 = len(np.concatenate((name_prop_land_div, name_prop_div_redun, name_prop_div_AcProd, name_prop_div_ModVida)))
@@ -177,7 +177,7 @@ def slope_time_series(model_time_series, name_year,
         else:
             indicators[0][j] = b1
             weigths[j] = weight_var_proper_princ2[i]
-        name_variables_indicator[j] = "Pendiente de la variable - " + name_prop_conectivity[i]
+        name_variables_indicator[j] = "Tendencia de la variable - " + name_prop_conectivity[i]
         name_variables[j] = name_prop_conectivity[i]
         j = j + 1
     len_2 = len(name_prop_conectivity)
@@ -201,7 +201,7 @@ def slope_time_series(model_time_series, name_year,
         b1 = xx_mean_yy_mean / xx_mean2
         indicators[0][j] = b1
         weigths[j] = weight_var_proper1_princ3[i]
-        name_variables_indicator[j] = "Pendiente de la variable - " + name_prop_InnovExper[i]
+        name_variables_indicator[j] = "Tendencia de la variable - " + name_prop_InnovExper[i]
         name_variables[j] =  name_prop_InnovExper[i]
         j = j + 1
     
@@ -225,7 +225,7 @@ def slope_time_series(model_time_series, name_year,
         else:
             indicators[0][j] = b1
             weigths[j] = weight_var_proper2_princ3[i]
-        name_variables_indicator[j] = "Pendiente de la variable - " + name_prop_transmission[i]
+        name_variables_indicator[j] = "Tendencia de la variable - " + name_prop_transmission[i]
         name_variables[j] = name_prop_transmission[i]
         j = j + 1
     len_3 = len(np.concatenate((name_prop_InnovExper, name_prop_transmission)))
@@ -249,7 +249,7 @@ def slope_time_series(model_time_series, name_year,
         b1 = xx_mean_yy_mean / xx_mean2
         indicators[0][j] = b1
         weigths[j] = weight_var_proper1_princ4[i]
-        name_variables_indicator[j] = "Pendiente de la variable - " + name_prop_Colaboration[i]
+        name_variables_indicator[j] = "Tendencia de la variable - " + name_prop_Colaboration[i]
         name_variables[j] = name_prop_Colaboration[i]
         j = j + 1
     len_4 = len(name_prop_Colaboration)
@@ -299,17 +299,67 @@ def slope_time_series(model_time_series, name_year,
     # plt.xlabel('tiempo')
     # plt.grid()
     # plt.show()
+    
     resi_indicator_DF = pd.DataFrame(resilience_indicator, columns=name_indicator).apply(pd.to_numeric)
     indicators_DF = pd.DataFrame(indicators, columns=name_variables_indicator).apply(pd.to_numeric)
+    
+    name_indicator_slope = np.array(['Tendencia del indice de resiliencia'])
+    resilience_indicator_slope = [None for x in range(len(time))]
+    for i in range(len(time)):
+        y = np.array(resilience_indicator)
+        x = np.array(time.loc[:, name_year])
+        x = x.reshape(len(x),)
+        x_mean = np.mean(x)
+        y_mean = np.mean(y)
+        xx_mean_yy_mean = sum((x - x_mean) * (y - y_mean))
+        xx_mean2 = sum((x - x_mean) ** 2)
+        b1 = xx_mean_yy_mean / xx_mean2
+    
+    resilience_indicator_slope[0] = b1
+    indicator_slope = pd.DataFrame(resilience_indicator_slope, columns=name_indicator_slope).apply(pd.to_numeric)
     
     normalized_variables_order = np.array(all_normalized_variables.loc[:, name_variables])
     name_normalized_variables_order = [None for x in range(len(name_variables))]
     for i in range(len(name_variables)):
         name_normalized_variables_order[i] = name_variables[i] + " (normalizada)"
-        
-    normalized_variables_order = pd.DataFrame(normalized_variables_order, columns=name_normalized_variables_order).apply(pd.to_numeric)
+# -----------------------------------------------
+    arr = model_time_series.to_numpy()
+    nrow = len(arr[:,0])
+    time_vector = arr[:,0]
+    time_vector_slopes = arr[:,0]
+    time_vector = ["%.0f" % x for x in time_vector]
     
-    output_indicator = pd.concat([indicators_DF, normalized_variables_order, resi_indicator_DF], axis = 1)
+    delta_time = []
+    for i in range(nrow-1):
+        delta_time.append(time_vector[i] + "-" +time_vector[i+1])
+        
+    slopes_t2_t1 = np.array(resilience_indicator[1:nrow]) - np.array(resilience_indicator[0:nrow-1])
+    name_slopes_t2_t1 = np.array(['Cambio de la pendiente en el indice de resiliencia'])
+    name_slopes_t2_t1_deltat = np.array(['Delta de tiempo'])
+    slopes_t2_t1_Data = [None for x in range(len(time))]
+    Delta_t_Data = [None for x in range(len(time))]
+    Delta_t_Data[0:nrow-1] = delta_time
+    slopes_t2_t1_Data[0:nrow-1] = slopes_t2_t1
+    slopes_t2_t1_DF = pd.DataFrame(slopes_t2_t1_Data, columns=name_slopes_t2_t1).apply(pd.to_numeric)
+    Delta_t_DF = pd.DataFrame(np.array(Delta_t_Data), columns=name_slopes_t2_t1_deltat)
+    
+    name_slopes_t0_ti = np.array(['Pendiente acumulada del indicador de resiliencia'])
+    slopes_t0_ti_Data = [None for x in range(len(time))]
+    
+    for i in range(len(time)-1):
+        y = np.array(resilience_indicator[0:i+2])
+        x = np.array(time_vector_slopes[0:i+2])
+        x_mean = np.mean(x)
+        y_mean = np.mean(y)
+        xx_mean_yy_mean = sum((x - x_mean) * (y - y_mean))
+        xx_mean2 = sum((x - x_mean) ** 2)
+        slopes_t0_ti_Data[i] = xx_mean_yy_mean / xx_mean2
+        
+    slopes_t0_ti_DF = pd.DataFrame(slopes_t0_ti_Data, columns=name_slopes_t0_ti).apply(pd.to_numeric)
+# -----------------------------------------------
+    normalized_variables_order = pd.DataFrame(normalized_variables_order, columns=name_normalized_variables_order).apply(pd.to_numeric)
+    output_indicator = pd.concat([indicators_DF, normalized_variables_order, resi_indicator_DF, Delta_t_DF,slopes_t0_ti_DF, slopes_t2_t1_DF], axis = 1)
+    
     return output_indicator
         
        
