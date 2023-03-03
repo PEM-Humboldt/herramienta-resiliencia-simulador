@@ -9,6 +9,7 @@ from ModuloDisponibilidadHabitat import Habitat
 from ModuloTejidoSocial import SF_auxiliary
 from ModuloSalud import Health_auxiliary
 from ModuloDisponibilidadHabitat import Habitat_Espi
+from ModuloAgua import WaterUseIndex
 # from ModuloDiversidadActividadesProductivas import Population
 import fun_ode as ode
 from scipy.integrate import odeint
@@ -463,23 +464,29 @@ Ys[:,17] = (Ys[:,17])
 PAE = (Ys[:,13]) + (Ys[:,14]) + (Ys[:,15])
 name_PAE = np.array(['Población total'])
 # 11. Water consumption
-ConsHDomes_con = dw[3,1] * PAE * (1-(mca ** 4) / 3)
+ConsHDomes_con = dw[7,1] * PAE *(1-dw[15,1]) * (1-(mca ** 3) / 3)
 name_ConsHDomes_con = np.array(['Consumo de agua doméstico con cuidado del agua'])
-ConsHDomes_sin = dw[3,1] * PAE
+ConsHDomes_sin = dw[7,1] * PAE *(1-dw[15,1])
 name_ConsHDomes_sin = np.array(['Consumo de agua doméstico sin cuidado del agua'])
-ConsIndusEner = dw[0,1]
-ConsOtros = dw[1,1]
-OHTD = dw[22,1]
-Qm_con = OHTD - (ConsIndusEner + ConsHDomes_con + ConsOtros)
+
+Consumption = (ConsHDomes_con +
+               dw[0,1] * (1 - dw[8,1]) +
+               dw[1,1] * (1 - dw[9,1]) +
+               dw[2,1] * (1 - dw[10,1]) +
+               dw[3,1] * (1 - dw[11,1]) +
+               dw[4,1] * (1 - dw[12,1]) +
+               dw[5,1] * (1 - dw[13,1]) +
+               dw[6,1] * (1 - dw[14,1]))
+
+OHTD = dw[33,1]
+Qm_con = OHTD - Consumption
 name_Qm_con = np.array(['Caudal medio de salida con cuidado del agua'])
-Qm_sin = OHTD - (ConsIndusEner + ConsHDomes_sin + ConsOtros)
+Qm_sin = OHTD - (Consumption - ConsHDomes_con + ConsHDomes_sin)
 name_Qm_sin = np.array(['Caudal medio de salida sin cuidado del agua'])
-EsC = dw[21,1] # OHTS
-QAMB = EsC - OHTD
-Qsal_QAMB_con = (Qm_con - QAMB) / QAMB
-Qsal_QAMB_sin = (Qm_sin - QAMB) / QAMB
-name_Qsal_QAMB_con = np.array(['Caudal a la salida - Caudal ambiental con cuidado del agua'])
-name_Qsal_QAMB_sin = np.array(['Caudal a la salida - Caudal ambiental sin cuidado del agua'])
+
+IUA = np.zeros(ntime)
+for i in range(int(ntime)):
+    IUA[i] = WaterUseIndex.water_use_index(Ys[i,:], dw)
 
 # 12. Productive activities indices
 name_VacOcup = np.array(['Vacantes de ocupación'])
@@ -500,15 +507,6 @@ name_mcf = np.array(['Indicador de cuidado de la fauna'])
 name_mcb = np.array(['Indicador de cuidado del bosque'])
 # 14. Health indices
 name_InProvAliCobi = np.array(['Indice de provisión de alimento por coberturas'])
-# # 15. transformation rates
-# transformations = np.transpose([[None for x0_cover in range(ntime)] for x0_cover in range(len(x0_cover))])
-# cover = np.transpose(Ys[:,0:11])
-# for i in range(int(ntime)):
-#     for k in range(nx0_cover):
-#         tCobiCobj = cover_rates[k][:]
-#         tCobjCobi = cover_rates_t[:][k]
-#         transformations[i][k] = sum(tCobjCobi * cover[:, i]) - sum(tCobiCobj * cover[k, i])
-# name_trnsf = ['Velocidad de cambio ' + sub for sub in name_cover]
 
 # Exporting time series as a .csv file
 names = np.concatenate((name_year, 
@@ -527,8 +525,6 @@ names = np.concatenate((name_year,
                         name_ConsHDomes_sin,
                         name_Qm_con,
                         name_Qm_sin,
-                        name_Qsal_QAMB_con,
-                        name_Qsal_QAMB_sin,
                         # name_WQ, # si
                         name_mv_original,
                         name_mv_modificada,
@@ -597,8 +593,6 @@ output = np.c_[time,
                ConsHDomes_sin,
                Qm_con,
                Qm_sin,
-               Qsal_QAMB_con,
-               Qsal_QAMB_sin,
             #    ICAiv_original, # si
                ICAmv_original,
                ICAmv_modificada,
