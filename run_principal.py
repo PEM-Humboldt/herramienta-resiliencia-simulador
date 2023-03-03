@@ -187,6 +187,7 @@ ACob = Ys[:, 0:11]
 Yt = np.sum(Ys[:, 0:nx0_cover],axis = 1) # axis=1 --> add rows, axis=0 --> add columns
 ACob_norm = ACob / Yt[0]
 ACob_log = ACob_norm * np.log(ACob_norm)
+ACob_log = np.nan_to_num(ACob_log)
 Yt_log = -np.sum(ACob_log[:, 0:nx0_cover],axis=1)
 name_Land_Div = np.array(['Diversidad del paisaje'])
 NA = np.sum(Ys[:, 2:5], axis = 1)
