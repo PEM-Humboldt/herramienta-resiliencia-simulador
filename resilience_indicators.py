@@ -172,7 +172,8 @@ def slope_time_series(model_time_series, name_year,
         xx_mean2 = sum((x - x_mean) ** 2)
         b1 = xx_mean_yy_mean / xx_mean2
         if b1 == 0:
-            indicators[0][j] = y[0]
+            # indicators[0][j] = y[0]
+            indicators[0][j] = b1
             weigths[j] = weight_var_proper_princ2[i]
         else:
             indicators[0][j] = b1
@@ -220,7 +221,8 @@ def slope_time_series(model_time_series, name_year,
         xx_mean2 = sum((x - x_mean) ** 2)
         b1 = xx_mean_yy_mean / xx_mean2
         if b1 == 0:
-            indicators[0][j] = y[0]
+            # indicators[0][j] = y[0]
+            indicators[0][j] = b1
             weigths[j] = weight_var_proper2_princ3[i]
         else:
             indicators[0][j] = b1
@@ -273,7 +275,8 @@ def slope_time_series(model_time_series, name_year,
         xx_mean2 = sum((x - x_mean) ** 2)
         b1 = xx_mean_yy_mean / xx_mean2
         if b1 == 0:
-            indicators[0][j] = y[0]
+            # indicators[0][j] = y[0]
+            indicators[0][j] = b1
             weigths[j] = weight_var_proper1_princ5[i]
         else:
             indicators[0][j] = b1
