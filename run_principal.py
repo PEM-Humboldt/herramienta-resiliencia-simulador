@@ -449,7 +449,8 @@ for i in range(int(ntime)):
     if VacO[i] - PoETEA[i] >= 0:
         PoOcu[i] = 1
     else:
-        PoOcu[i] = VacO[i] - PoETEA[i]
+        # PoOcu[i] = VacO[i] - PoETEA[i]
+        PoOcu[i] = 0
 name_IDivAPro = np.array(['Indice de diversidad de actividades productivas'])
 name_OandE = np.array(['Personas que están ocupadas'])
 

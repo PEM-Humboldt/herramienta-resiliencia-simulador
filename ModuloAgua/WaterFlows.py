@@ -54,15 +54,16 @@ def water_inputs_outputs(x0, dw, mca, PAE, AE): # Infiltration
         FS = 0
         
     EsC = OHTS + FS # OHTS
+    QAMB = OHTS - OHTD
     
-    Qm = OHTD - (PAE * DemDomes * (1 - tRetorDomes) * (1 - (mca ** 3) / 3) +
+    Qm = (OHTD - (PAE * DemDomes * (1 - tRetorDomes) * (1 - (mca ** 3) / 3) +
                  DemEner * (1 - tRetorEner) +
                  DemHidrocar * (1 - tRetorHidrocar) +
                  DemServi * (1 - tRetorServi) +
                  DemIndusConstruc * (1 - tRetorIndusConstruc) +
                  DemAgrico * (1 - tRetorAgrico) +
                  DemMinero * (1 - tRetorMinero) +
-                 DemPecuario * (1 - tRetorPecuario))    
+                 DemPecuario * (1 - tRetorPecuario))) + QAMB
     
     pPtoMz = pPtoMz * AlmaSat
     CapCam = pCampCam * AlmaSat
