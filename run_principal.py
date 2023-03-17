@@ -189,6 +189,7 @@ ACob_norm = ACob / Yt[0]
 ACob_log = ACob_norm * np.log(ACob_norm)
 ACob_log = np.nan_to_num(ACob_log)
 Yt_log = -np.sum(ACob_log[:, 0:nx0_cover],axis=1)
+Yt_log = Yt_log / np.log(11)
 name_Land_Div = np.array(['Diversidad del paisaje'])
 NA = np.sum(Ys[:, 2:5], axis = 1)
 name_NA = np.array(['Áreas naturales'])

@@ -28,10 +28,22 @@ def slope_time_series(model_time_series, name_year,
                                                      name_PT,
                                                      posi2):
     
-    names_normalized_cover = np.concatenate((name_NA, names_HeterAg))
-    normalized_covers = model_time_series.loc[:, names_normalized_cover] / AT
+    normalized_NA = model_time_series.loc[:, name_NA] / AT
+    ANA0 = normalized_NA.iloc[0]
+    maxa_NA = normalized_NA.max()
+    normalized_NA = normalized_NA / maxa_NA
     
-    names_normalized_maxa = np.concatenate((name_Land_Div, name_water))
+    O_Cob = 1 - ANA0[0]
+    
+    normalized_HeterAg = model_time_series.loc[:, names_HeterAg] / AT
+    normalized_HeterAg = normalized_HeterAg / O_Cob
+
+    normalized_covers = pd.concat([normalized_NA, normalized_HeterAg], axis = 1)
+    
+    # names_normalized_cover = np.concatenate((name_NA, names_HeterAg))
+    # normalized_covers = model_time_series.loc[:, names_normalized_cover] / AT
+    
+    names_normalized_maxa = name_water
     data_maxa = model_time_series.loc[:, names_normalized_maxa]
     maxa = data_maxa.max()
     normalized_maxa = data_maxa / maxa 
@@ -47,7 +59,7 @@ def slope_time_series(model_time_series, name_year,
     
     normalized_IntCom = model_time_series.loc[:, name_IntCom] / 5
     
-    names_normalized_variables = np.concatenate((name_all_mper_Esp, name_all_mper_fun, name_IDivAPro, name_DivSisAlimLocal,
+    names_normalized_variables = np.concatenate((name_Land_Div, name_all_mper_Esp, name_all_mper_fun, name_IDivAPro, name_DivSisAlimLocal,
                                            name_PperxFun_nectar, name_PperxFun_frugi, name_PperxFun_semilla, name_ConectBOn,
                                            name_SF, name_Con_Acces, name_sum_pyf, name_Health))
     
