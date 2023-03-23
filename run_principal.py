@@ -457,7 +457,7 @@ name_OandE = np.array(['Personas que están ocupadas'])
 
 # 9. Standardized conectivity
 ConectBOn = (2/3) ** (Ys[:,12])
-name_ConectBOn = np.array(['Conectividad normalizada'])
+name_ConectBOn = np.array(['Conectividad de áreas naturales normalizada'])
 # 10. Total population
 Ys[:,13] = (Ys[:,13])
 Ys[:,14] = (Ys[:,14])
