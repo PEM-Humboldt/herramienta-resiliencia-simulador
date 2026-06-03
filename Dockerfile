@@ -1,10 +1,11 @@
 FROM python:3.8-bullseye
 
 ARG userpassword
-RUN apt-get update && apt-get install -y openssh-server libaio1\
-  && service ssh start \
-  && useradd -ms /bin/bash model \
-  && echo model:$userpassword | chpasswd
+RUN apt-get update && \
+    apt-get install -y openssh-server libaio1 && \
+    mkdir -p /run/sshd && \
+    useradd -ms /bin/bash model && \
+    echo "model:${userpassword:-temporal123}" | chpasswd
 
 RUN wget https://download.oracle.com/otn_software/linux/instantclient/217000/instantclient-basic-linux.x64-21.7.0.0.0dbru.zip \
     && unzip instantclient-basic-linux.x64-21.7.0.0.0dbru.zip -d /opt/oracle/ \
