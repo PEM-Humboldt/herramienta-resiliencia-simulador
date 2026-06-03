@@ -16,7 +16,10 @@ def SF_auxiliary_variables(x0, dsf, IntCom, x_0):
     facTransConsCSA_ColAc = dsf[1, 1]
     facTransConsCSA_CuAg = dsf[2, 1]
     PAE = sum(x_0[13:16])
-    ProgIyP = math.trunc(pPer_1ProgParCom * (1+pPer_2ProgParCom) * PAE / pmPerProgParCom)
+    if pmPerProgParCom == 0:
+        ProgIyP = 0
+    else:
+        ProgIyP = math.trunc(pPer_1ProgParCom * (1+pPer_2ProgParCom) * PAE / pmPerProgParCom)
     ColEA = IntCom * np.log((ProgIyP + 1))
     TranConsConfColAct = (facTransConsCSA_ColAc * ColEA) / 15
     
