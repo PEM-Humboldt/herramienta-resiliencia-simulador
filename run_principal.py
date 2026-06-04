@@ -254,7 +254,16 @@ name_mv_AirQ = np.array(['ICA aire promedio regional'])
 data_AirQ = pd.read_excel (parametersPath, sheet_name ='Air_quality')
 dairq = pd.DataFrame(data_AirQ, columns= ['ICA PM10', 'ICA PM 2,5', 'ICA CO', 'ICA SO2', 'ICA NO2', 'ICA O3'])
 dairq = dairq.to_numpy()
-ICAairi = np.nanmean(dairq, axis=0)
+# Calculate ICAairi: for each column, compute mean across rows, but only considering columns with at least one valid record
+# First, identify columns with at least one valid (non-NaN) value
+valid_cols = ~np.all(np.isnan(dairq), axis=0)
+# Initialize ICAairi with NaN for all columns
+ICAairi = np.full(len(name_AirQ), np.nan)
+# Calculate mean only for columns that have valid data
+if np.any(valid_cols):
+    # Compute mean for valid columns and assign to corresponding positions
+    valid_means = np.nanmean(dairq[:, valid_cols], axis=0)
+    ICAairi[valid_cols] = valid_means
 ICAairm = 1-np.nanmean(ICAairi) / 500
 ICAairiv = np.transpose([[None for ICAairi in range(ntime)] for ICAairi in range(len(ICAairi))])
 ICAairmv = [None for ICAairm in range(ntime)]
